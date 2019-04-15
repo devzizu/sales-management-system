@@ -17,5 +17,5 @@ $(ODIR)/%o :
 main: clean $(OBJECTS)
 	$(CC) $(CFLAGS) $(OBJECTS) -o main
 
-clean:
+clean: 
 	rm -f $(ODIR)/*.o
