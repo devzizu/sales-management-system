@@ -1,21 +1,13 @@
-OS := $(shell uname)
-ifeq ($(OS),Linux)
-    CFLAGS= -g -D_POSIX_C_SOURCE -Wall -Wextra -pedantic -std=c11 -O2
-else
-    CFLAGS= -g -Wall -Wextra -pedantic -std=c11 -O2
-endif
+CC = gcc -g -Ofast -march=native -Wall
+CGLAGS = -I
+DEPS = $(wildcard *.h)
+OBJ = $(patsubst %.c,%.o,$(wildcard *.c))
 
-ODIR=obj
-CC=gcc
+%.o: %.c $(DEPS)
+	$(CC) -c -o $@ $< $(CFLAGS) -lm
+	
+ma: $(OBJ)
+	$(CC) -o $@ $^ $(CFLAGS) -lm
 
-SOURCES=$(wildcard *.c)
-OBJECTS=$(foreach o, $(patsubst %.c, %.o, $(SOURCES)), $(ODIR)/$o)
-
-$(ODIR)/%o :
-	$(CC) $(CFLAGS) -c -o $@ $(patsubst %.o, %.c, $(patsubst $(ODIR)/%, %, $@))
-
-main: clean $(OBJECTS)
-	$(CC) $(CFLAGS) $(OBJECTS) -o main
-
-clean: 
-	rm -f $(ODIR)/*.o
+clean:
+	rm ma *.o
