@@ -61,17 +61,18 @@ void atualizaNome (char *codigo, char *novoNome) {
 	
 	offset-=n;
 
+	lseek(fd_artigo, offset, SEEK_SET);
+
 	char **campos = (char**) malloc(sizeof(char*) * 2);
 
     campos = tokenizeArtigo(campos, buffer);
 
     char newString[strlen(buffer) + 10];
 
-    sprintf(newString, "%d %lf   ", novoCodigo, atof(campos[1]));
+    sprintf(newString, "%d %.2lf", novoCodigo, atof(campos[1]));
 
-    write(fd_artigo, newString, strlen(newString));
-
-	close(fd_artigo);
+    if (write(fd_artigo, newString, strlen(newString))!=-1)
+		close(fd_artigo);
 }
 
 int main () {
