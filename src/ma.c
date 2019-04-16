@@ -4,8 +4,8 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <string.h>
 
-#include "string.h"
 #include "global.h"
 
 void inserirArtigo (char* nome, double preco) {
@@ -30,49 +30,59 @@ void inserirArtigo (char* nome, double preco) {
 	close(fd_string);
 }
 
-void atualizaNome (char *codigo, char *novoNome) {
+void atualizaNome (int codigoAntigo, char *novoNome) {
 
+	//-----------------------------------------------------------
+
+	//Abrir o ficheiro de strings para inserir no fim o novo nome
 	int fd_string = open(PATH_STRINGS, O_APPEND|O_WRONLY, 0666);
 
-	//Acrescentar o novo nome no fim do ficheiro
+	//Acrescentar o novo nome no fim do ficheiro de strings
 	if (write(fd_string, novoNome, strlen(novoNome)) != -1);
 	
+	//Já nao é preciso usar mais o ficheiro de strings
 	close(fd_string);
 
-	//Atualizar o codigo do nome para a posicao nova do ficheiro
+	//-----------------------------------------------------------
+
+	//O codigo novo sera a posicao onde foi inserido o novo nome
+	//Neste caso foi inserido no fim do ficheiro
 	int novoCodigo = linhasFicheiro(PATH_STRINGS) - 1;
-	int antigoCodigo = atoi(codigo);
+	
+	//-----------------------------------------------------------
 
 	int fd_artigo = open(PATH_ARTIGOS, O_RDWR, 0666);
-	int n = 0, i = 0;
-	char buffer[50];
 
-	int offset = 0;
+	int linha_atual = 0;
 
-	lseek(fd_artigo, 0, SEEK_SET);	
+	//Colocar o offset de escrita no inicio do ficheiro
+	off_t offset = lseek(fd_artigo, 0, SEEK_SET);
+
+	//Buffer para o readline com size MAX_LINE
+	char buffer[MAX_LINE]; int n;
 	do {
 
-		n = readln(fd_artigo, buffer, 50);
-		buffer[n] = '\0';
-		i++;
-		offset+=n;
+		n = readln(fd_artigo, buffer, MAX_LINE);
 
-	} while (i < antigoCodigo);
-	
+		offset+=n;
+		linha_atual++;
+
+	} while (linha_atual < codigoAntigo);
+
 	offset-=n;
 
-	lseek(fd_artigo, offset, SEEK_SET);
+	offset = lseek(fd_artigo, offset, SEEK_SET);
 
-	char **campos = (char**) malloc(sizeof(char*) * 2);
+	char precoAntigo[MAX_LINE], tmp[MAX_LINE];
+	sscanf(buffer, "%s %s", tmp, precoAntigo);
 
-    campos = tokenizeArtigo(campos, buffer);
+	//Buffer que contem o novo codigo e preco de escrita em ARTIGOS.txt 
+	char bufferEscrita[MAX_LINE];
+	sprintf(bufferEscrita, "%d %s\0", novoCodigo, precoAntigo);
 
-    char newString[strlen(buffer) + 10];
+	if (write(fd_artigo, bufferEscrita, strlen(bufferEscrita)) != -1);
 
-    sprintf(newString, "%d %.2lf", novoCodigo, atof(campos[1]));
-
-    if (write(fd_artigo, newString, strlen(newString))!=-1)
-		close(fd_artigo);
+	close(fd_artigo);
 }
 
 int main () {
@@ -102,7 +112,7 @@ int main () {
 					  break;
 
 			//Alterar o nome do artigo: n <codigo> <novo nome>
-			case 'n': atualizaNome(campos[1], campos[2]);
+			case 'n': atualizaNome(atoi(campos[1]), campos[2]);
 					  break;
 
 			default: break;
