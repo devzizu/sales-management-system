@@ -1,8 +1,10 @@
 #ifndef _GLOBAL_
 #define _GLOBAL_
 
-#define PATH_ARTIGOS "ARTIGOS.txt"
-#define PATH_STRINGS "STRINGS.txt"
+#define PATH_ARTIGOS "FILES/ARTIGOS.txt"
+#define PATH_STRINGS "FILES/STRINGS.txt"
+
+#define PATH_TMP_ARTIGOS "FILES/tmpArtigos.txt"
 
 #define MAX_LINE 150
 

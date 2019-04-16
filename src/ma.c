@@ -8,16 +8,18 @@
 
 #include "global.h"
 
-void inserirArtigo (char* nome, double preco) {
+void inserirArtigo (char* nome, double preco, int *lastLine) {
 
 	int fd_artigo = open (PATH_ARTIGOS, O_APPEND|O_WRONLY, 0666);
 	int fd_string = open (PATH_STRINGS, O_APPEND|O_WRONLY, 0666);
 
 	char buffer[strlen(nome) + 1];
 
+	int index = 0;
+
 	if (fd_artigo != EOF && fd_string != EOF) {
 
-		int index = linhasFicheiro(PATH_ARTIGOS);
+		index = linhasFicheiro(PATH_ARTIGOS);
 
 		sprintf(buffer, "%d %.2lf\n", index, preco);
 		if (write(fd_artigo, buffer, strlen(buffer)) != -1);
@@ -26,11 +28,13 @@ void inserirArtigo (char* nome, double preco) {
 		if (write(fd_string, buffer, strlen(buffer)) != -1);
 	}
 
+	*lastLine = index;
+
 	close(fd_artigo);
 	close(fd_string);
 }
 
-void atualizaNome (int codigoAntigo, char *novoNome) {
+void atualizaNome (int codigoAntigo, char *novoNome, int *lastLine) {
 
 	//-----------------------------------------------------------
 
@@ -48,40 +52,76 @@ void atualizaNome (int codigoAntigo, char *novoNome) {
 	//O codigo novo sera a posicao onde foi inserido o novo nome
 	//Neste caso foi inserido no fim do ficheiro
 	int novoCodigo = linhasFicheiro(PATH_STRINGS) - 1;
-	
+
 	//-----------------------------------------------------------
 
-	int fd_artigo = open(PATH_ARTIGOS, O_RDWR, 0666);
+	//Renomear o ficheiro de artigos para um temporario
+	if (rename(PATH_ARTIGOS, PATH_TMP_ARTIGOS) == 0);
+
+	int fd_artigo = open(PATH_TMP_ARTIGOS, O_RDONLY, 0666);
+
+	//Abrir novo ficheiro para guardar o ficheiro final com o nome que tinha antes
+	int fd_novoArtigos = open(PATH_ARTIGOS, O_CREAT|O_TRUNC|O_WRONLY, 0666);
+
+	//-----------------------------------------------------------
 
 	int linha_atual = 0;
-
-	//Colocar o offset de escrita no inicio do ficheiro
-	off_t offset = lseek(fd_artigo, 0, SEEK_SET);
-
-	//Buffer para o readline com size MAX_LINE
 	char buffer[MAX_LINE]; int n;
-	do {
+	off_t offset = lseek(fd_novoArtigos, 0, SEEK_SET);
+
+	while (linha_atual < codigoAntigo) {
 
 		n = readln(fd_artigo, buffer, MAX_LINE);
 
-		offset+=n;
+		offset += n;
 		linha_atual++;
+	
+		if ((linha_atual-1) < (codigoAntigo - 1)) {
 
-	} while (linha_atual < codigoAntigo);
+			if (write(fd_novoArtigos, buffer, strlen(buffer)) != -1);
+		
+		}
 
-	offset-=n;
+	}
 
-	offset = lseek(fd_artigo, offset, SEEK_SET);
+	//-----------------------------------------------------------
 
 	char precoAntigo[MAX_LINE], tmp[MAX_LINE];
 	sscanf(buffer, "%s %s", tmp, precoAntigo);
 
-	//Buffer que contem o novo codigo e preco de escrita em ARTIGOS.txt 
 	char bufferEscrita[MAX_LINE];
-	sprintf(bufferEscrita, "%d %s\0", novoCodigo, precoAntigo);
+	sprintf(bufferEscrita, "%d %s\n", novoCodigo>(*lastLine)?novoCodigo:(*lastLine), precoAntigo);
+		
+	//Após isto tenho o buffer criado com a linha alterada
 
-	if (write(fd_artigo, bufferEscrita, strlen(bufferEscrita)) != -1);
+	//-----------------------------------------------------------
+	
+	//Escrever a linha nova no ficheiro novo de artigos
+    if(write(fd_novoArtigos, bufferEscrita, 
+                strlen(bufferEscrita)) != -1);
 
+    //while (fd_artigo != EOF) {
+	while (n > 0) {
+
+		n = readln(fd_artigo, buffer, MAX_LINE);
+
+		offset+=n;
+
+		if (write(fd_novoArtigos, buffer, strlen(buffer)) != -1);
+	}
+
+	//-----------------------------------------------------------
+
+	lseek(fd_artigo, 0, SEEK_SET);
+	lseek(fd_novoArtigos, 0, SEEK_SET);
+
+	if (remove(PATH_TMP_ARTIGOS) == 0);
+
+	if (rename(PATH_TMP_ARTIGOS, PATH_ARTIGOS) == 0);
+
+	*lastLine = novoCodigo;
+
+	close(fd_novoArtigos);
 	close(fd_artigo);
 }
 
@@ -92,34 +132,36 @@ int main () {
 
 	//Return value do readline
 	int n = 1;
-	//Buffer lido pelo readline
-	char buffer[MAX_LINE];
 	char **campos;
+	char buffer[MAX_LINE];
 
-	//Ler os comandos inseridos
+	int *lastLine = (int*) malloc(sizeof(int));
+	*lastLine = 0;
+
 	while (n > 0) {
 
 		//Ler o comando
-		n = readline(1, buffer, MAX_LINE);
+		n = readln(0, buffer, MAX_LINE);
 
 		//Separar o comando lido num array de strings
 		campos = tokenizeComando(buffer);
 
-		switch(buffer[0]) {
+		switch(campos[0][0]) {
 
 			//Inserir novo artigo: i <nome> <preco>
-			case 'i': inserirArtigo(campos[1], atof(campos[2]));
+			case 'i': inserirArtigo(campos[1], atof(campos[2]), lastLine);
 					  break;
 
 			//Alterar o nome do artigo: n <codigo> <novo nome>
-			case 'n': atualizaNome(atoi(campos[1]), campos[2]);
+			case 'n': atualizaNome(atoi(campos[1]), campos[2], lastLine);
 					  break;
 
 			default: break;
 		}
 
-
 	}
+
+	free(lastLine);
 
 	return 0;
 }

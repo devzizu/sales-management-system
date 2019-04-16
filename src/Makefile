@@ -1,13 +1,23 @@
-CC = gcc -g -Ofast -march=native -Wall
-CGLAGS = -I
-DEPS = $(wildcard *.h)
-OBJ = $(patsubst %.c,%.o,$(wildcard *.c))
+OS := $(shell uname)
+ifeq ($(OS),Linux)
+    CFLAGS= -O2
+else
+    CFLAGS= -g -pedantic -std=c11 -O2
+endif
 
-%.o: %.c $(DEPS)
-	$(CC) -c -o $@ $< $(CFLAGS) -lm
-	
-ma: $(OBJ)
-	$(CC) -o $@ $^ $(CFLAGS) -lm
+ODIR=obj
+CC=gcc
+
+SOURCES=$(wildcard *.c)
+OBJECTS=$(foreach o, $(patsubst %.c, %.o, $(SOURCES)), $(ODIR)/$o)
+
+print-% : ; @echo $* = $($*)
+
+$(ODIR)/%o :
+	$(CC) $(CFLAGS) -c -o $@ $(patsubst %.o, %.c, $(patsubst $(ODIR)/%, %, $@))
+
+ma: clean $(OBJECTS)
+	$(CC) $(CFLAGS) $(OBJECTS) -o ma
 
 clean:
-	rm ma *.o
+	rm -f $(ODIR)/*.o

@@ -61,6 +61,8 @@ size_t readline (int fd, char* buffer, size_t nbyte) {
 
 	} while (i != 0 && bytes_lidos != nbyte && c != '\n');
 
+	buffer[i]='\0';
+
 	return bytes_lidos;
 }
 
