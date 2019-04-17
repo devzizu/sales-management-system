@@ -3,6 +3,8 @@
 
 #define PATH_ARTIGOS "FILES/ARTIGOS.txt"
 #define PATH_STRINGS "FILES/STRINGS.txt"
+#define PATH_STOCK "FILES/STOCK.txt"
+#define PATH_VENDAS "FILES/VENDAS.txt"
 
 #define PATH_TMP_ARTIGOS "FILES/tmpArtigos.txt"
 

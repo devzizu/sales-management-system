@@ -1,23 +1,16 @@
-OS := $(shell uname)
-ifeq ($(OS),Linux)
-    CFLAGS= -O2
-else
-    CFLAGS= -g -pedantic -std=c11 -O2
-endif
+#Makefile para compilar o projeto todo
 
-ODIR=obj
-CC=gcc
+MA = ma_src/
+SV = sv_src/
 
-SOURCES=$(wildcard *.c)
-OBJECTS=$(foreach o, $(patsubst %.c, %.o, $(SOURCES)), $(ODIR)/$o)
+all: ma sv
 
-print-% : ; @echo $* = $($*)
+ma:
+	cd $(MA) && $(MAKE)
+	cd ..
+	echo "Manutenção de artigos compiled..."
 
-$(ODIR)/%o :
-	$(CC) $(CFLAGS) -c -o $@ $(patsubst %.o, %.c, $(patsubst $(ODIR)/%, %, $@))
-
-ma: clean $(OBJECTS)
-	$(CC) $(CFLAGS) $(OBJECTS) -o ma
-
-clean:
-	rm -f $(ODIR)/*.o
+sv:
+	cd $(SV) && $(MAKE)
+	cd ..
+	echo "Servidor de vendas compiled..."
