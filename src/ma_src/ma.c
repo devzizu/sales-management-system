@@ -10,24 +10,23 @@
 
 //-----------------------------------------------------------------
 
-void inserirArtigo (char* nome, double preco) {
+//Retorna a ultima linha onde foi inserido
+int inserirArtigo (char* nome, double preco) {
+
+	//Posicao onde vai ser inserido no ficheiro de strings
+	int index = linhasFicheiro(PATH_STRINGS);
 
 	//Abrir ambos os ficheiros
 	//Não é preciso append pois faço lseek
 	//Faço lseek para saber o valor que retorna, ou seja, o offset
 	//...e guardo no index
 	int fd_artigo = open (PATH_ARTIGOS, O_WRONLY, 0666);
-	int fd_string = open (PATH_STRINGS, O_WRONLY, 0666);
+	int fd_string = open (PATH_STRINGS, O_APPEND|O_WRONLY, 0666);
 
 	char buffer[MAX_LINE];
 
-	//Esta imicializacao é inutil, só por causa de warnings
-	int index = 0;
-
 	if (fd_artigo != EOF && fd_string != EOF) {
 
-		//Reposicionar o ficheiro de strings no fim
-		index = lseek(fd_string, 0, SEEK_END);
 		//Reposicionar o ficheiro de artigos no fim		
 		lseek(fd_artigo, 0, SEEK_END);
 
@@ -37,13 +36,18 @@ void inserirArtigo (char* nome, double preco) {
 		sprintf(buffer, "%d %.2lf\n", index, preco);
 		if (write(fd_artigo, buffer, strlen(buffer)) != -1);
 
+		char nameBuffer[MAX_LINE];
+		sprintf(nameBuffer, "%s\n", nome);
 		//Acrescentar o novo nome ao fim do ficheiro strings
-		if (write(fd_string, nome, strlen(nome)) != -1);
+		if (write(fd_string, nameBuffer, strlen(nameBuffer)) != -1);
 	}
 
 	//Fechar os fd's dos artigos
 	close(fd_artigo);
 	close(fd_string);
+
+	//Linha onde foi inserido
+	return index;
 }
 
 //-----------------------------------------------------------------
@@ -52,13 +56,12 @@ void atualizaNome (int ref_antiga, char *novoNome) {
 
 	//-----------------------------------------------------------
 
-	int fd_string = open(PATH_STRINGS, O_WRONLY, 0666);
-
 	//Novo offset do nome do produto alterado no ficheiro strings
-	int newIndex = lseek(fd_string, 0, SEEK_END);
+	int newIndex = linhasFicheiro(PATH_STRINGS);
 
-	//Escrever nesse offset o novo nome
-	novoNome[strlen(novoNome) - 1] = '\0'; //remover o \n
+	int fd_string = open(PATH_STRINGS, O_APPEND|O_WRONLY, 0666);
+
+	//Acrestar o novo nome ao fim, ja tem \n
 	if (write(fd_string, novoNome, strlen(novoNome)) != -1);
 
 	//Já não preciso mais desse ficheiro, logo fecho-o
@@ -105,7 +108,7 @@ void atualizaNome (int ref_antiga, char *novoNome) {
 	//Guardar tudo num buffer de escrita final
 	char bufferEscrita[MAX_LINE];
 	sprintf(bufferEscrita, "%d %s\n", newIndex
-								  , precoAntigo);	
+								    , precoAntigo);	
 
 	//Escrever a linha nova no ficheiro novo de artigos
 	//Esta é append as linhas que ja la estavam
@@ -135,6 +138,7 @@ void atualizaNome (int ref_antiga, char *novoNome) {
 	close(fd_novoArtigos);
 
 	//-----------------------------------------------------------
+
 }
 
 void atualizaPreco (int referencia, double novoPreco) {
