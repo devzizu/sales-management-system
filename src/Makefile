@@ -11,6 +11,6 @@ ma:
 	echo "Manutenção de artigos compiled..."
 
 sv:
-	cd $(MA) && mkdir -p obj && $(MAKE)
+	cd $(SV) && mkdir -p obj && $(MAKE)
 	cd ..
 	echo "Servidor de vendas compiled..."
