@@ -16,8 +16,8 @@ print-% : ; @echo $* = $($*)
 $(ODIR)/%o :
 	$(CC) $(CFLAGS) -c -o $@ $(patsubst %.o, %.c, $(patsubst $(ODIR)/%, %, $@))
 
-ma: clean $(OBJECTS)
-	$(CC) $(CFLAGS) $(OBJECTS) -o ma
+sv: clean $(OBJECTS)
+	$(CC) $(CFLAGS) $(OBJECTS) -o sv
 
 clean:
 	rm -f $(ODIR)/*.o
