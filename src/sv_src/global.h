@@ -7,6 +7,7 @@
 #define PATH_VENDAS "FILES/VENDAS.txt"
 
 #define PATH_TMP_ARTIGOS "FILES/tmpArtigos.txt"
+#define PATH_TMP_STOCK "FILES/tmpStock.txt"
 
 #define MAX_LINE 150
 
@@ -15,6 +16,10 @@ int linhasFicheiro (char *path);
 char** tokenizeComando (char* string);
 
 char** tokenizeArtigo (char** campos, char* string);
+
+char** tokenizeComandoCV (char* string);
+
+int anySpaceInString (char *string);
 
 size_t readline (int fd, char* buffer, size_t nbyte);
 

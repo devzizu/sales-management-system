@@ -1,6 +1,6 @@
 OS := $(shell uname)
 ifeq ($(OS),Linux)
-    CFLAGS= -O2
+    CFLAGS= -g -O2
 else
     CFLAGS= -g -pedantic -std=c11 -O2
 endif

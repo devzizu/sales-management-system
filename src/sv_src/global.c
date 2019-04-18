@@ -35,7 +35,30 @@ char** tokenizeComando (char* string) {
 	return campos;
 }
 
+int anySpaceInString (char *string) {
+
+	int i = 0;
+
+	for (; i < strlen(string); i++) {
+		if (string[i]==' ') return 1;
+	}
+
+	return 0;
+}
+
+char** tokenizeComandoCV (char* string) {
+
+	char **campos = (char**) malloc(sizeof(char*) * 2);
+
+	campos[0] = strdup(strtok(string, " "));
+	campos[1] = strdup(strtok(NULL, " "));
+
+	return campos;
+}
+
 char** tokenizeArtigo (char **campos, char* string) {
+
+	campos = (char**) malloc(sizeof(char*) * 2);
 
 	campos[0] = strdup(strtok(string, " "));
 	campos[1] = strdup(strtok(NULL, " "));
