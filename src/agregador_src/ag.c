@@ -1,58 +1,103 @@
-#include <stdio.h>
+
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#include <glib.h>
 #include <stdlib.h>
+#include <string.h>
+
+#include <stdio.h>
+#include <glib.h>
+#include <gmodule.h>
 
 #include "global.h"
 
 int main () {
 
-	if (system("clear")!=-1);
+	if (system("clear") != -1);
 
-	GHashTable *tableLines = NULL;
+	//Criar a arvore de vendasTable
+	GHashTable *vendasTable = NULL;
 
-	tableLines = g_hash_table_new(g_str_hash, g_str_equal); 
+	//inicializar a arvore de vendasTable
+	vendasTable = g_hash_table_new(g_str_hash, g_str_equal); 
 
- 	int fd_vendas = open(PATH_VENDAS, O_RDONLY, 0666);
+	//Abrir o ficheiro de vendasTable para leitura
+ 	int fd_vendasTable = open(PATH_VENDAS, O_RDONLY, 0666);
 
- 	int n = 1;
+ 	//Valor lido pelo readln
+ 	int n;
 
+ 	//Buffers para guardar os elementos lidos do ficheiro
  	char key[MAX_LINE];
- 	char value[MAX_LINE];
+ 	char val[MAX_LINE];
  	char buffer[MAX_LINE];
- 
- 	gboolean existeYet;
-	
-	n = readln(fd_vendas, buffer, MAX_LINE);
- 
+ 	
+ 	gboolean res;
+
+ 	//Ler a primeira linha
+	n = readln(fd_vendasTable, buffer, MAX_LINE);
+ 	
+ 	//Ler o resto das linhas
  	do {
 
- 		sscanf(buffer, "%s %s", key, value);
+ 		sscanf(buffer, "%s %s", key, val);
 
- 		existeYet = g_hash_table_insert (tableLines, 
- 							 			strdup(key), 
- 							 			strdup(buffer));
+ 		printf("buff=%s", buffer);
 
- 		n = readln(fd_vendas, buffer, MAX_LINE);
+		GList *listaNova = NULL;
+
+		if (g_hash_table_contains(vendasTable, key) == TRUE) {
+
+			listaNova = g_hash_table_lookup(vendasTable, key);
+
+		}
+	
+		listaNova = g_list_append(listaNova, 
+								  strdup(buffer));
+
+		//Inserir o elemento na hashtable
+		res = g_hash_table_insert(vendasTable, strdup(key), listaNova);
+
+		printf("Ja existe %s? %s\n\n", key, res==TRUE?"Nao":"Sim");
+
+
+ 		n = readln(fd_vendasTable, buffer, MAX_LINE);
  	
- 	} while (n > 0);
+	} while (n > 0);
 
-	GList *l, 
-		  *keys = g_hash_table_get_keys(tableLines),
-		  *values = g_hash_table_get_values(tableLines);
+	close(fd_vendasTable);
 
-	for (l = keys; l != NULL; l = l -> next) {
-		printf("key=%s\n", (char*) l -> data);
+	//--------------------------------------------------------------
+
+	printf("\nElementos da hashtable (há %d keys):----------\n\n", g_hash_table_size(vendasTable));
+
+	GList *auxKeys = NULL, 
+		  *auxVal = NULL, 
+		  *keys = NULL, 
+		  *vals = NULL;
+	
+	keys = g_hash_table_get_keys(vendasTable);
+	vals = g_hash_table_get_values(vendasTable);
+
+	for (auxKeys = keys, auxVal = vals; 
+		 auxKeys != NULL && auxVal != NULL; 
+		 auxKeys = auxKeys -> next, auxVal = auxVal -> next) {
+
+		printf("key = %s, values:\n", (char*) (auxKeys -> data));
+
+		printf("\tval = %s\n", (char*) (auxVal -> data));
+
 	}
 
-	for (l = values; l != NULL; l = l -> next) {
-		printf("val=%s", (char*) l -> data);
-	}
+	g_list_free(keys);
+	g_list_free(vals);
 
-	close(fd_vendas);
+	//--------------------------------------------------------------
+
+	printf("\nElementos do ficheiro vendas:----------------\n");
+
+	if (system("cat FILES/VENDAS.txt") != -1);
 
 	return 0;
 }
