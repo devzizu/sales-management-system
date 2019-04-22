@@ -47,6 +47,8 @@ char* get_line_from_file (char *path, int line_to_search) {
 
 int main(int argc, char const *argv[]) {
 	
+	printf("Lixo: %.3lf per cent\n", trash_ammount_in_file(PATH_ARTIGOS));
+
 	int fd_artigos = open(PATH_ARTIGOS, O_RDONLY, 0666);
 
 	GHashTable *stringsCompact = g_hash_table_new(g_str_hash, g_str_equal);
@@ -108,6 +110,9 @@ int main(int argc, char const *argv[]) {
 
 		inserirArtigo(nome_art, getPreco(auxValues -> data));
 	}
+
+	printf("Reducing the ammount of trash in file...\n");
+	printf("Lixo: %.3lf per cent\n", trash_ammount_in_file(PATH_ARTIGOS));
 
 	return 0;
 }

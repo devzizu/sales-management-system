@@ -11,6 +11,8 @@
 
 #define MAX_LINE 150
 
+double trash_ammount_in_file (char *path);
+
 int inserirArtigo (char* nome, double preco);
 
 int linhasFicheiro (char *path);

@@ -8,6 +8,50 @@
 
 #include "global.h"
 
+//Vai ser sempre o ficheiro artigos
+double trash_ammount_in_file (char *path) {
+
+	//percentagem de lixo no ficheiro
+	double trash = 0.0;
+
+	int fd_artigos = open(path, O_RDONLY, 0666);
+
+	//Nº de bytes lidos pelo readline
+	int n = 0, linha = 1, lixo = 0;
+ 	
+ 	//Linha lida
+	char buffer[MAX_LINE];
+	//Referencia na linha
+	char *key_ref;
+	//Preco lido
+	char *preco;
+
+ 	//Ler a primeira linha
+	n = readln(fd_artigos, buffer, MAX_LINE);
+ 	
+ 	//Ler o resto das linhas
+ 	do {
+
+ 		//Sacar o preco e referencia (para o ficheiro strings)
+ 		key_ref = strdup(strtok(buffer, " "));
+ 		preco   = strdup(strtok(NULL  , " "));
+
+ 		if (atoi(key_ref) != linha) 
+ 			lixo++;
+ 		
+ 		n = readln(fd_artigos, buffer, MAX_LINE);
+ 		
+ 		linha++;
+
+	} while (n > 0);
+
+	close(fd_artigos);
+
+	trash = (double) lixo / linha;
+
+	return trash;
+}
+
 //Retorna a ultima linha onde foi inserido
 int inserirArtigo (char* nome, double preco) {
 
