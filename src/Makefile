@@ -25,21 +25,21 @@ artigo: GLOBAL_SOURCE/artigos.c GLOBAL_SOURCE/artigos.h
 	mv artigos.o $(OBJ)
 
 ma:
-	cd $(MA) && mkdir -p $(OBJ) && $(MAKE)
+	cd $(MA) && mkdir -p obj/ && $(MAKE)
 	cd ..
 	echo "Manutenção de artigos compiled..."
 
 sv:
-	cd $(SV) && mkdir -p $(OBJ) && $(MAKE)
+	cd $(SV) && mkdir -p obj/ && $(MAKE)
 	cd ..
 	echo "Servidor de vendas compiled..."
 
 ag:
-	cd $(AG) && mkdir -p $(OBJ) && $(MAKE)
+	cd $(AG) && mkdir -p obj/ && $(MAKE)
 	cd ..
 	echo "Agregador compiled..."
 
 comp:
-	cd $(COMP) && mkdir -p $(OBJ) && $(MAKE)
+	cd $(COMP) && mkdir -p obj/ && $(MAKE)
 	cd ..
 	echo "Compactador compiled..."
