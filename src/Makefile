@@ -6,11 +6,12 @@ CC=gcc
 MA = ma_src/
 SV = sv_src/
 AG = ag_src/
+CV = cv_src/
 COMP = compactador_src/
 
 OBJ = GLOBAL_SOURCE/obj
 
-all: source ma sv ag comp
+all: source ma sv ag comp cv
 
 source: global artigo
 
@@ -43,3 +44,8 @@ comp:
 	cd $(COMP) && mkdir -p obj/ && $(MAKE)
 	cd ..
 	echo "Compactador compiled..."
+
+cv:
+	cd $(CV) && mkdir -p obj/ && $(MAKE)
+	cd ..
+	echo "Cliente Vendas compiled..."
