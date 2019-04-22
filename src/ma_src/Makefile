@@ -7,7 +7,7 @@ endif
 
 ODIR=obj
 CC=gcc
-GLOBAL=../GLOBAL_SOURCE/global.o
+GLOBAL=../GLOBAL_SOURCE/obj/global.o
 
 SOURCES=$(wildcard *.c)
 OBJECTS=$(foreach o, $(patsubst %.c, %.o, $(SOURCES)), $(ODIR)/$o)

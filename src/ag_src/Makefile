@@ -8,7 +8,7 @@ endif
 LIBS = `pkg-config --libs libxml-2.0` `pkg-config --libs glib-2.0`
 ODIR=obj
 CC=gcc
-GLOBAL=../GLOBAL_SOURCE/global.o
+GLOBAL=../GLOBAL_SOURCE/obj/global.o
 
 SOURCES=$(wildcard *.c)
 OBJECTS=$(foreach o, $(patsubst %.c, %.o, $(SOURCES)), $(ODIR)/$o)

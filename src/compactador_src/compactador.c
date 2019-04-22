@@ -10,7 +10,7 @@
 #include <glib.h>
 
 #include "../GLOBAL_SOURCE/global.h"
-#include "artigos.h"
+#include "../GLOBAL_SOURCE/artigos.h"
 
 char* get_line_from_file (char *path, int line_to_search) {
 

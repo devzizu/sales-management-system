@@ -8,29 +8,38 @@ SV = sv_src/
 AG = ag_src/
 COMP = compactador_src/
 
-all: global ma sv ag comp
+OBJ = GLOBAL_SOURCE/obj
+
+all: source ma sv ag comp
+
+source: global artigo
 
 global: GLOBAL_SOURCE/global.c GLOBAL_SOURCE/global.h
 	$(CC) $(CFLAGS) -c GLOBAL_SOURCE/global.c
-	mkdir -p obj
-	mv global.o obj
+	mkdir -p $(OBJ)
+	mv global.o $(OBJ)
+
+artigo: GLOBAL_SOURCE/artigos.c GLOBAL_SOURCE/artigos.h
+	$(CC) $(CFLAGS) -c GLOBAL_SOURCE/artigos.c
+	mkdir -p $(OBJ)
+	mv artigos.o $(OBJ)
 
 ma:
-	cd $(MA) && mkdir -p obj && $(MAKE)
+	cd $(MA) && mkdir -p $(OBJ) && $(MAKE)
 	cd ..
 	echo "Manutenção de artigos compiled..."
 
 sv:
-	cd $(SV) && mkdir -p obj && $(MAKE)
+	cd $(SV) && mkdir -p $(OBJ) && $(MAKE)
 	cd ..
 	echo "Servidor de vendas compiled..."
 
 ag:
-	cd $(AG) && mkdir -p obj && $(MAKE)
+	cd $(AG) && mkdir -p $(OBJ) && $(MAKE)
 	cd ..
 	echo "Agregador compiled..."
 
 comp:
-	cd $(COMP) && mkdir -p obj && $(MAKE)
+	cd $(COMP) && mkdir -p $(OBJ) && $(MAKE)
 	cd ..
 	echo "Compactador compiled..."
