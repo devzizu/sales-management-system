@@ -142,8 +142,13 @@ char** tokenizeComando (char* string) {
 
 char** tokenizeArtigo (char **campos, char* string) {
 
+	campos = (char**) malloc(sizeof(char*) * 2);
+
+	printf("ola1 n=%d\n", string == NULL);
 	campos[0] = strdup(strtok(string, " "));
+	printf("ola2\n");
 	campos[1] = strdup(strtok(NULL, " "));
+	printf("ola3\n");
 
 	return campos;
 }

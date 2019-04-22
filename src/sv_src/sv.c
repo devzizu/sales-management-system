@@ -171,7 +171,7 @@ void updateVenda (int codigo, int quantidade)
 	double precoLido = atof(campos[1]);
 
 	//Falta apenas acrescentar ao ficheiro de vendas o final
-	int fd_vendas = open(PATH_VENDAS, O_CREAT | O_APPEND | O_WRONLY, 0666);
+	int fd_vendas = open(PATH_VENDAS, O_APPEND | O_WRONLY, 0666);
 
 	//Juntar a venda toda num buffer
 
