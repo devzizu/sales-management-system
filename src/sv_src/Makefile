@@ -7,6 +7,7 @@ endif
 
 ODIR=obj
 CC=gcc
+GLOBAL=../GLOBAL_SOURCE/global.o
 
 SOURCES=$(wildcard *.c)
 OBJECTS=$(foreach o, $(patsubst %.c, %.o, $(SOURCES)), $(ODIR)/$o)
@@ -17,7 +18,7 @@ $(ODIR)/%o :
 	$(CC) $(CFLAGS) -c -o $@ $(patsubst %.o, %.c, $(patsubst $(ODIR)/%, %, $@))
 
 sv: clean $(OBJECTS)
-	$(CC) $(CFLAGS) $(OBJECTS) -o sv
+	$(CC) $(CFLAGS) $(OBJECTS) $(GLOBAL) -o sv
 
 clean:
 	rm -f $(ODIR)/*.o

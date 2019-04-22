@@ -8,6 +8,7 @@ endif
 LIBS = `pkg-config --libs libxml-2.0` `pkg-config --libs glib-2.0`
 ODIR=obj
 CC=gcc
+GLOBAL=../GLOBAL_SOURCE/global.o
 
 SOURCES=$(wildcard *.c)
 OBJECTS=$(foreach o, $(patsubst %.c, %.o, $(SOURCES)), $(ODIR)/$o)
@@ -18,7 +19,7 @@ $(ODIR)/%o :
 	$(CC) $(CFLAGS) -c -o $@ $(patsubst %.o, %.c, $(patsubst $(ODIR)/%, %, $@))
 
 compactador: clean $(OBJECTS)
-	$(CC) $(CFLAGS) $(OBJECTS) -o compactador $(LIBS)
+	$(CC) $(CFLAGS) $(OBJECTS) $(GLOBAL) -o compactador $(LIBS)
 
 clean:
 	rm -f $(ODIR)/*.o

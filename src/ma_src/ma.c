@@ -6,49 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "global.h"
-
-//-----------------------------------------------------------------
-
-//Retorna a ultima linha onde foi inserido
-int inserirArtigo (char* nome, double preco) {
-
-	//Posicao onde vai ser inserido no ficheiro de strings
-	int index = linhasFicheiro(PATH_STRINGS);
-
-	//Abrir ambos os ficheiros
-	//Não é preciso append pois faço lseek
-	//Faço lseek para saber o valor que retorna, ou seja, o offset
-	//...e guardo no index
-	int fd_artigo = open (PATH_ARTIGOS, O_WRONLY, 0666);
-	int fd_string = open (PATH_STRINGS, O_APPEND|O_WRONLY, 0666);
-
-	char buffer[MAX_LINE];
-
-	if (fd_artigo != EOF && fd_string != EOF) {
-
-		//Reposicionar o ficheiro de artigos no fim		
-		lseek(fd_artigo, 0, SEEK_END);
-
-		//Guardar no buffer o novo artigo e a sua posição
-		//o index representa o offset desde o inicio do ficheiro ate ao inicio da string do produto
-		//A segunda parte é o preço do artigo
-		sprintf(buffer, "%d %.2lf\n", index, preco);
-		if (write(fd_artigo, buffer, strlen(buffer)) != -1);
-
-		char nameBuffer[MAX_LINE];
-		sprintf(nameBuffer, "%s\n", nome);
-		//Acrescentar o novo nome ao fim do ficheiro strings
-		if (write(fd_string, nameBuffer, strlen(nameBuffer)) != -1);
-	}
-
-	//Fechar os fd's dos artigos
-	close(fd_artigo);
-	close(fd_string);
-
-	//Linha onde foi inserido
-	return index;
-}
+#include "../GLOBAL_SOURCE/global.h"
 
 //-----------------------------------------------------------------
 

@@ -7,7 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "global.h"
+#include "../GLOBAL_SOURCE/global.h"
 
 //----------------------------------------------------
 

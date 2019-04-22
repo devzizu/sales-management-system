@@ -11,6 +11,8 @@
 
 #define MAX_LINE 150
 
+int inserirArtigo (char* nome, double preco);
+
 int linhasFicheiro (char *path);
 
 char** tokenizeComando (char* string);
@@ -24,5 +26,9 @@ int anySpaceInString (char *string);
 size_t readline (int fd, char* buffer, size_t nbyte);
 
 size_t readln (int fd, char *buf, size_t max);
+
+char** tokenizeComandoCV (char* string);
+
+int anySpaceInString (char *string);
 
 #endif

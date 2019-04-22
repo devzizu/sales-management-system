@@ -11,7 +11,7 @@
 #include <gmodule.h>
 #include <time.h>
 
-#include "global.h"
+#include "../GLOBAL_SOURCE/global.h"
 
 GList* joinList (GList *arg) {
 
