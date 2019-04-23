@@ -75,15 +75,15 @@ int inserirArtigo (char* nome, double preco) {
 		//Guardar no buffer o novo artigo e a sua posição
 		//o index representa o offset desde o inicio do ficheiro ate ao inicio da string do produto
 		//A segunda parte é o preço do artigo
-		sprintf(buffer, "%d %.2lf\n", index, preco);
-		if (write(fd_artigo, buffer, strlen(buffer)) != -1);
+		sprintf(buffer, "%08d %012.2lf\n", index, preco);
+		if (write(fd_artigo, buffer, LINE_ARTIGOS) != -1);
 
 		char nameBuffer[MAX_LINE];
 		sprintf(nameBuffer, "%s\n", nome);
 		//Acrescentar o novo nome ao fim do ficheiro strings
 		if (write(fd_string, nameBuffer, strlen(nameBuffer)) != -1);
 	}
-
+	
 	//Fechar os fd's dos artigos
 	close(fd_artigo);
 	close(fd_string);

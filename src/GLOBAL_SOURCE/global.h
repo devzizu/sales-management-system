@@ -10,6 +10,7 @@
 #define PATH_TMP_STOCK "FILES/tmpStock.txt"
 
 #define MAX_LINE 150
+#define LINE_ARTIGOS 22
 
 double trash_ammount_in_file (char *path);
 

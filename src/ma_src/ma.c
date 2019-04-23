@@ -13,6 +13,7 @@
 void atualizaNome (int ref_antiga, char *novoNome) {
 
 	//-----------------------------------------------------------
+	// Adicionar ao fim do ficheiro Strings o novo Nome
 
 	//Novo offset do nome do produto alterado no ficheiro strings
 	int newIndex = linhasFicheiro(PATH_STRINGS);
@@ -27,73 +28,29 @@ void atualizaNome (int ref_antiga, char *novoNome) {
 
 	//-----------------------------------------------------------
 
-	//Renomear o ficheiro de artigos para um temporario
-	if (rename(PATH_ARTIGOS, PATH_TMP_ARTIGOS) == 0);
+	int fd_artigo = open(PATH_ARTIGOS, O_RDWR, 0666);
 
-	//Abrir o ficheiro tmp para leitura
-	int fd_tmp = open(PATH_TMP_ARTIGOS, O_RDONLY, 0666);
+	lseek(fd_artigo, 0, SEEK_SET);
 
-	//Abrir novo ficheiro para guardar o ficheiro final com o nome que tinha antes
-	int fd_novoArtigos = open(PATH_ARTIGOS, O_CREAT|O_TRUNC|O_WRONLY, 0666);
-
-	//Contador para as linhas
-	int linha_atual = 0;
-	//Buffer para guardar o resultado das leituras
-	char buffer[MAX_LINE];
-	//n -> representa o numero de bytes lidos do readline
-	int n = 0;
-	while (linha_atual < ref_antiga) { 
-	//Referencia antiga == Linha/Codigo que quero alterar do ficheiro artigos 
-
-		n = readln(fd_tmp, buffer, MAX_LINE);
+	int pos_escrita = (ref_antiga-1) * LINE_ARTIGOS;
 	
-		if (linha_atual < (ref_antiga - 1)) {
+	off_t offset = lseek(fd_artigo, pos_escrita, SEEK_SET);
 
-			if (write(fd_novoArtigos, buffer, strlen(buffer)) != -1);
-		
-		}
+	char buffer[MAX_LINE];
+	int n;
+	n = readln(fd_artigo, buffer, MAX_LINE);
 
-		linha_atual++;
-	}
-
-	//-----------------------------------------------------------
-
-	//Sacar o preco que estava na linha que quero alterar
-	//Fazendo sscanf do buffer
 	char precoAntigo[MAX_LINE], tmp[MAX_LINE];
 	sscanf(buffer, "%s %s", tmp, precoAntigo);
 
-	//Guardar tudo num buffer de escrita final
-	char bufferEscrita[MAX_LINE];
-	sprintf(bufferEscrita, "%d %s\n", newIndex
-								    , precoAntigo);	
+	sprintf(buffer, "%08d %s\n", newIndex
+							   , precoAntigo);	
 
-	//Escrever a linha nova no ficheiro novo de artigos
-	//Esta é append as linhas que ja la estavam
-    if(write(fd_novoArtigos, bufferEscrita, 
-                strlen(bufferEscrita)) != -1);
+	offset = lseek(fd_artigo, -LINE_ARTIGOS, SEEK_CUR);
 
-	//-----------------------------------------------------------
-    //Falta apenas colocar o resto das linhas do ficheiro tmp no novo
-
-    //While: consegue ler algo do readln
-    //Aqui o seek ja se encontra na posicao certa, ou seja,
-    //logo a seguir da linha que se escolheu alterar dada pela ref_antiga
-	while (n > 0) {
-
-		n = readln(fd_tmp, buffer, MAX_LINE);
-
-		if (write(fd_novoArtigos, buffer, strlen(buffer)) != -1);
-	}
-
-	//-----------------------------------------------------------
-
-	//Remover o ficheiro temporario, já nao sera preciso
-	if (remove(PATH_TMP_ARTIGOS) == 0);
-
-	//Fechar os fd's dos ficheiros
-	close(fd_tmp);
-	close(fd_novoArtigos);
+	if (write(fd_artigo, buffer, LINE_ARTIGOS) != -1);
+	
+	close(fd_artigo);
 
 	//-----------------------------------------------------------
 
@@ -101,34 +58,18 @@ void atualizaNome (int ref_antiga, char *novoNome) {
 
 void atualizaPreco (int referencia, double novoPreco) {
 
-	//Renomear o ficheiro de artigos para um temporario
-	if (rename(PATH_ARTIGOS, PATH_TMP_ARTIGOS) == 0);
+	int fd_artigo = open(PATH_ARTIGOS, O_RDWR, 0666);
 
-	//Abrir o ficheiro tmp para leitura
-	int fd_tmp = open(PATH_TMP_ARTIGOS, O_RDONLY, 0666);
+	int pos_escrita = (referencia-1) * LINE_ARTIGOS;
 
-	//Abrir novo ficheiro para guardar o ficheiro final com o nome que tinha antes
-	int fd_novoArtigos = open(PATH_ARTIGOS, O_CREAT|O_TRUNC|O_WRONLY, 0666);
+	off_t offset = lseek(fd_artigo, pos_escrita, SEEK_SET);
 
-	//Contador para as linhas
-	int linha_atual = 0;
-	//Buffer para guardar o resultado das leituras
 	char buffer[MAX_LINE];
-	//n -> representa o numero de bytes lidos do readline
-	int n = 0;
-	while (linha_atual < referencia) { 
-	//Referencia antiga == Linha/Codigo que quero alterar do ficheiro artigos 
 
-		n = readln(fd_tmp, buffer, MAX_LINE);
-	
-		if (linha_atual < (referencia - 1)) {
+	int n;
+	n = readln(fd_artigo, buffer, MAX_LINE);
 
-			if (write(fd_novoArtigos, buffer, strlen(buffer)) != -1);
-		
-		}
-
-		linha_atual++;
-	}
+	printf("%s\n", buffer);
 
 	//Sacar o preco que estava na linha que quero alterar
 	//Fazendo sscanf do buffer
@@ -137,37 +78,16 @@ void atualizaPreco (int referencia, double novoPreco) {
 
 	//Guardar tudo num buffer de escrita final
 	char bufferEscrita[MAX_LINE];
-	sprintf(bufferEscrita, "%s %.2lf\n", tmp
-								     , novoPreco);	
+	sprintf(bufferEscrita, "%s %012.2lf\n", tmp
+        								  , novoPreco);	
+
+	offset = lseek(fd_artigo, -LINE_ARTIGOS, SEEK_CUR);
 
 	//Escrever a linha nova no ficheiro novo de artigos
 	//Esta é append as linhas que ja la estavam
-    if(write(fd_novoArtigos, bufferEscrita, 
-                strlen(bufferEscrita)) != -1);
+    if(write(fd_artigo, bufferEscrita, LINE_ARTIGOS) != -1);
 
-	//-----------------------------------------------------------
-    //Falta apenas colocar o resto das linhas do ficheiro tmp no novo
-
-    //While: consegue ler algo do readln
-    //Aqui o seek ja se encontra na posicao certa, ou seja,
-    //logo a seguir da linha que se escolheu alterar dada pela ref_antiga
-	while (n > 0) {
-
-		n = readln(fd_tmp, buffer, MAX_LINE);
-
-		if (write(fd_novoArtigos, buffer, strlen(buffer)) != -1);
-	}
-
-	//-----------------------------------------------------------
-
-	//Remover o ficheiro temporario, já nao sera preciso
-	if (remove(PATH_TMP_ARTIGOS) == 0);
-
-	//Fechar os fd's dos ficheiros
-	close(fd_tmp);
-	close(fd_novoArtigos);
-
-	//-----------------------------------------------------------
+	close(fd_artigo);
 
 }
 
