@@ -9,10 +9,12 @@
 
 #include "../GLOBAL_SOURCE/global.h"
 
+#define LINE_STOCK 11
+
 //----------------------------------------------------
 
-void printStockPreco(int codigoProduto, char* data) 
-{
+void printStockPreco(int codigoProduto, char* data) {
+
 	//----------------------------------------------------
 	//         MOSTRAR O STOCK
 	//----------------------------------------------------
@@ -81,77 +83,35 @@ void printStockPreco(int codigoProduto, char* data)
 
 //----------------------------------------------------
 
-void updateQuantidadeStock (int codigo, int novaQuantidade, char* data) 
-{
-	//Caracteres lidos pelo readln
-	int n = 0, codigoAtual = 1;
-	//Ler para o buffer
-	char buffer[MAX_LINE];
+void updateQuantidadeStock (int codigo, int novaQuantidade, char* data) {
 
-	if(rename(PATH_STOCK, PATH_TMP_STOCK) == 0);
+	int fd_stock = open(PATH_STOCK, O_RDWR, 0666);
 
-	//Processo de criar ficheiro novo e tmp  feito no ma_src
-	int fd_tmp = open(PATH_TMP_STOCK, O_RDONLY, 0666);
-	int fd_novoStock = open(PATH_STOCK, O_CREAT|O_TRUNC|O_WRONLY, 0666);	
+	int pos_leitura = (codigo-1) * LINE_STOCK;
+	off_t offset = lseek(fd_stock, pos_leitura, SEEK_SET);
 
-	//Contador para as linhas
-	int linha_atual = 0;
+	char stockAntigo[MAX_LINE];
+	int n = readln(fd_stock, stockAntigo, MAX_LINE);
 
-	while (linha_atual < codigo) 
-	{ 
-		//Referencia antiga == Linha/Codigo que quero alterar do ficheiro artigos 
-		n = readln(fd_tmp, buffer, MAX_LINE);
-	
-		if (linha_atual < (codigo - 1)) 
-		{
-			if(write(fd_novoStock, buffer, strlen(buffer)) != -1);
-		
-		}
+	offset = lseek(fd_stock, pos_leitura, SEEK_SET);
 
-		linha_atual++;
-	}
+	int finalQuantidade = atoi(stockAntigo) + novaQuantidade;
+	sprintf(stockAntigo, "%010d\n", finalQuantidade);	
 
-	//-----------------------------------------------------------
-	
-	char antigaQuant[MAX_LINE];
-	sscanf(buffer, "%s", antigaQuant);
+	if (write(fd_stock, stockAntigo, strlen(stockAntigo)) != -1);
+
+	close(fd_stock);
 
 	char bufferEscrita[MAX_LINE];
-	int finalQuantidade = atoi(antigaQuant) + novaQuantidade;
-	sprintf(bufferEscrita, "%d\n", finalQuantidade);	
-
-	//Escrever a linha nova no ficheiro novo de artigos
-	//Esta é append as linhas que ja la estavam
-    if(write(fd_novoStock, bufferEscrita, strlen(bufferEscrita)) != -1);
-
 	sprintf(bufferEscrita, "%s Quantidade de stock: %d\n", data, 
-														   finalQuantidade);
-	
+														      finalQuantidade);
+
 	int fd_pipe_escrita = open("../PipeVendas/pipePrintCliente", O_WRONLY);
 	
 	if(write(fd_pipe_escrita, 
 		bufferEscrita, strlen(bufferEscrita))!=-1);
 	
 	close(fd_pipe_escrita);
-
-    n = 0;
-    do 
-    {
-		n = readln(fd_tmp, buffer, MAX_LINE);
-
-		if(write(fd_novoStock, buffer, strlen(buffer)) != -1);
-	
-	} while (n > 0);
-
-	//-----------------------------------------------------------
-
-	//Remover o ficheiro temporario, já nao sera preciso
-	if (remove(PATH_TMP_STOCK) == 0);
-
-	//Fechar os fd's dos ficheiros
-	close(fd_tmp);
-	close(fd_novoStock);
-
 }
 
 //----------------------------------------------------
