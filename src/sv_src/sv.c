@@ -11,7 +11,7 @@
 
 //----------------------------------------------------
 
-void printStockPreco(int codigoProduto) 
+void printStockPreco(int codigoProduto, char* data) 
 {
 	//----------------------------------------------------
 	//         MOSTRAR O STOCK
@@ -52,26 +52,28 @@ void printStockPreco(int codigoProduto)
 	int fd_artigo = open(PATH_ARTIGOS, O_RDONLY, 0666);
 	//----------------------------------------------------
 
-	//Zerar o contador
-	codigoAtual = 0;
-	n = 0;
+	int pos_leitura = LINE_ARTIGOS * (codigoProduto - 1);
 
-	do 
-	{
-		n = readln(fd_artigo, buffer, MAX_LINE);		
+	off_t offset = lseek(fd_artigo, pos_leitura, SEEK_SET);
 
-		codigoAtual++;
+	n = readln(fd_artigo, buffer, LINE_ARTIGOS);
 
-	} while(codigoAtual < codigoProduto && n > 0);
-
-	//No buffer tenho a linha certa
-	//Para guardar a divisao do buffer
 	char **campos = tokenizeArtigo(campos, buffer);
 
 	double precoLido = atof(campos[1]);
 
-	//Apresentar o stock e o preco
-	printf("Artigo: %d | Stock: %d | Preco: %.2lf\n", codigoProduto, quantidadeStock, precoLido);
+	char bufferEscrita[MAX_LINE];
+	sprintf(bufferEscrita, "%s Artigo: %d | Stock: %d | Preco: %lf\n", data, 
+																	   codigoProduto, 
+																	   quantidadeStock, 
+																	   precoLido);
+	
+	int fd_pipe_escrita = open("../PipeVendas/pipePrintCliente", O_WRONLY);
+	
+	if(write(fd_pipe_escrita, 
+		bufferEscrita, strlen(bufferEscrita))!=-1);
+
+	close(fd_pipe_escrita);
 
 	//Já nao é necessario o ficheiro artigos
 	close(fd_artigo);
@@ -79,7 +81,7 @@ void printStockPreco(int codigoProduto)
 
 //----------------------------------------------------
 
-void updateQuantidadeStock (int codigo, int novaQuantidade) 
+void updateQuantidadeStock (int codigo, int novaQuantidade, char* data) 
 {
 	//Caracteres lidos pelo readln
 	int n = 0, codigoAtual = 1;
@@ -115,11 +117,22 @@ void updateQuantidadeStock (int codigo, int novaQuantidade)
 	sscanf(buffer, "%s", antigaQuant);
 
 	char bufferEscrita[MAX_LINE];
-	sprintf(bufferEscrita, "%d\n", atoi(antigaQuant) + novaQuantidade);	
+	int finalQuantidade = atoi(antigaQuant) + novaQuantidade;
+	sprintf(bufferEscrita, "%d\n", finalQuantidade);	
 
 	//Escrever a linha nova no ficheiro novo de artigos
 	//Esta é append as linhas que ja la estavam
     if(write(fd_novoStock, bufferEscrita, strlen(bufferEscrita)) != -1);
+
+	sprintf(bufferEscrita, "%s Quantidade de stock: %d\n", data, 
+														   finalQuantidade);
+	
+	int fd_pipe_escrita = open("../PipeVendas/pipePrintCliente", O_WRONLY);
+	
+	if(write(fd_pipe_escrita, 
+		bufferEscrita, strlen(bufferEscrita))!=-1);
+	
+	close(fd_pipe_escrita);
 
     n = 0;
     do 
@@ -212,25 +225,26 @@ int main()
 			//1: <codigo> -> mostra o stock
 			//2: <codigo> <quantidade> -> atualiza o stock e mostra novo stock
 			//Se tiver um espaço então é o 2º comando
-			if(anySpaceInString(buffer)) 
-			{
-				campos = tokenizeComandoCV(buffer);
+			if(nr_spaces_in_string(buffer) == 2) 
+			{				
+				campos = tokenizePedidodServidor(buffer);
 
-				int codigo = atoi(campos[0]), quantidade = atoi(campos[1]);
+				int codigo = atoi(campos[1]), quantidade = atoi(campos[2]);
 
 				if (quantidade > 0) 
-					updateQuantidadeStock(codigo, quantidade);
+					updateQuantidadeStock(codigo, quantidade, campos[0]);
 				else	
 				{	
-					updateQuantidadeStock(codigo, quantidade);
+					updateQuantidadeStock(codigo, quantidade, campos[0]);
 					updateVenda(codigo, abs(quantidade));
 				}
 			} 
-			else 
-			{ //Comando sem espaço		
+			else if (nr_spaces_in_string(buffer) == 1) {
 
+				//Comando sem espaço		
+				campos = tokenizeComandoCV(buffer);
 				//Passo-lhe o codigo do produto em questao
-				printStockPreco(atoi(buffer));
+				printStockPreco(atoi(campos[1]), campos[0]);
 			}
 		}
 		

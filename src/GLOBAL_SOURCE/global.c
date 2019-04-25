@@ -108,15 +108,16 @@ int linhasFicheiro (char *path) {
 	return l;
 }
 
-int anySpaceInString (char *string) {
+int nr_spaces_in_string (char *string) {
 
-	int i = 0;
+	int i = 0, counter = 0;
 
 	for (; i < strlen(string); i++) {
-		if (string[i]==' ') return 1;
+		if (string[i]==' ') 
+			counter++;
 	}
 
-	return 0;
+	return counter;
 }
 
 char** tokenizeComandoCV (char* string) {
@@ -125,6 +126,17 @@ char** tokenizeComandoCV (char* string) {
 
 	campos[0] = strdup(strtok(string, " "));
 	campos[1] = strdup(strtok(NULL, " "));
+
+	return campos;
+}
+
+char** tokenizePedidodServidor (char *pedido) {
+
+	char **campos = (char**) malloc(sizeof(char*) * 3);
+
+	campos[0] = strdup(strtok(pedido, " "));
+	campos[1] = strdup(strtok(NULL, " "));
+	campos[2] = strdup(strtok(NULL, " "));
 
 	return campos;
 }
@@ -144,11 +156,8 @@ char** tokenizeArtigo (char **campos, char* string) {
 
 	campos = (char**) malloc(sizeof(char*) * 2);
 
-	printf("ola1 n=%d\n", string == NULL);
 	campos[0] = strdup(strtok(string, " "));
-	printf("ola2\n");
 	campos[1] = strdup(strtok(NULL, " "));
-	printf("ola3\n");
 
 	return campos;
 }

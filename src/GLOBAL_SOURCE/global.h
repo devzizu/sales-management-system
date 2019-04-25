@@ -24,13 +24,15 @@ char** tokenizeArtigo (char** campos, char* string);
 
 char** tokenizeComandoCV (char* string);
 
-int anySpaceInString (char *string);
+int nr_spaces_in_string (char *string);
 
 size_t readline (int fd, char* buffer, size_t nbyte);
 
 size_t readln (int fd, char *buf, size_t max);
 
 char** tokenizeComandoCV (char* string);
+
+char** tokenizePedidodServidor (char *pedido);
 
 int anySpaceInString (char *string);
 
