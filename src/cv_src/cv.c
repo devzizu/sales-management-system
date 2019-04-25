@@ -51,7 +51,7 @@ int main(int argc, char* argv[]) {
 								   tm.tm_sec);
 		fd = open("../PipeVendas/pipeClienteVendas", O_WRONLY);
 
-	while (bufferPedido[0] != '\n') {
+	do {
 
 	
 		n = read(0, bufferPedido, MAX_LINE); // Substituir por MAX_LINE
@@ -82,7 +82,7 @@ int main(int argc, char* argv[]) {
 			close(fd_pipe_pedidos);
 		}
 
-	}
+	} while (n > 0);
 
 			close(fd);
 }
