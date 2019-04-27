@@ -200,3 +200,14 @@ size_t readln (int fd, char *buf, size_t max) {
 
     return i;
 }
+
+size_t readNbytesOnce (int fd, char* buf, size_t nr_bytes) {
+
+	int n = 0;
+
+	n = read(fd, buf, nr_bytes);
+
+	buf[n+1] = '\0';
+
+	return n;
+}

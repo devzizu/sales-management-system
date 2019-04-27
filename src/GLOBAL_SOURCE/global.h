@@ -36,4 +36,6 @@ char** tokenizePedidodServidor (char *pedido);
 
 int anySpaceInString (char *string);
 
+size_t readNbytesOnce (int fd, char* buf, size_t nr_bytes);
+
 #endif

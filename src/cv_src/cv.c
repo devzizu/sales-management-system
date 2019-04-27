@@ -10,19 +10,9 @@
 
 #include "../GLOBAL_SOURCE/global.h"
 
-#define DATE_MAX 15
+#define TAM_PEDIDO 25
 
-int isequal(char *date1, char* date2) {
-
-	int r = 0;
-
-	int h1, m1, s1, h2, m2, s2;
-
-	sscanf(date1, "H%d:M%d:S%d", &h1, &m1, &s1);
-	sscanf(date2, "H%d:M%d:S%d", &h2, &m2, &s2);
-
-	return (h1 == h2 && m1 == m2 && s1 == s2);
-}
+#define TAM_RESPOSTA 43
 
 int main(int argc, char* argv[]) {
 
@@ -32,52 +22,92 @@ int main(int argc, char* argv[]) {
 	mkfifo("../PipeVendas/pipePrintCliente", 0600);
 
 	int n, n_pipe_pedido;
-
 	int fd, fd_pipe_pedidos;
+	int spaces = 0;
+	int quantidade = 0, codigo = 0, s;
 
 	//Buffer que contem data + pedido para o sv
-	char bufferGlobal[MAX_LINE];
-	char dateID[DATE_MAX];
-	char bufferPedido[MAX_LINE];
-	char bufferResposta[MAX_LINE];
+	char pedido[MAX_LINE];
+	char pedidoBuffer[MAX_LINE];
+	char clientRequest[MAX_LINE];
+	char serverAnswer[MAX_LINE];
 	char resposta[MAX_LINE];
-	char data[DATE_MAX];
 
-	time_t t = time(NULL);
-	struct tm tm = *localtime(&t);
 
-	sprintf(dateID, "H%d:M%d:S%d", tm.tm_hour, 
-								   tm.tm_min, 
-								   tm.tm_sec);
-		fd = open("../PipeVendas/pipeClienteVendas", O_WRONLY);
+	pid_t processID = getpid();
+	pid_t clientAnswerID;
+
+	fd = open("../PipeVendas/pipeClienteVendas", O_WRONLY);
 
 	do {
 
-	
-		n = read(0, bufferPedido, MAX_LINE); // Substituir por MAX_LINE
-	
-		sprintf(bufferGlobal, "%s %s", dateID, bufferPedido);
+		//Enviar para o server------------------------------------------
+		n = read(0, clientRequest, MAX_LINE);
 
-		if(bufferPedido[0] != '\n') {
+		if(clientRequest[0] != '\n') {
 
-			if(write(fd, bufferGlobal, strlen(bufferGlobal)) != -1);
+			spaces = nr_spaces_in_string(clientRequest);
+
+			if (spaces == 0) {
+
+				sprintf(pedidoBuffer, "%07d %08d %08d", processID, 
+											      	 	atoi(clientRequest),
+											      	 	0);
+
+			} else if (spaces == 1) {
+
+				sscanf(clientRequest, "%d %d", &codigo, &quantidade);
+
+				sprintf(pedidoBuffer, "%07d %08d %08d", processID, 
+					                             	 	codigo,
+					                              		quantidade);
+			}
+
+			//Escrever o pedido para o pipe que vai até ao servidor
+			if(write(fd, pedidoBuffer, TAM_PEDIDO) != -1);
 		}
+
+		//Ler resposta do server----------------------------------------
 
 		fd_pipe_pedidos = open("../PipeVendas/pipePrintCliente", O_RDWR);
 
-		n_pipe_pedido = readln(fd_pipe_pedidos, bufferResposta, MAX_LINE);
+		n_pipe_pedido = read(fd_pipe_pedidos, serverAnswer, TAM_RESPOSTA);
 		
-		sscanf(bufferResposta, "%s %s", data, resposta);
 
-		if (isequal(data, dateID)) {
+		int tipoDeResposta, codigoProduto, quantidadeStock;
+		double precoLido;
 
-			printf("%s", bufferResposta);
+		sscanf(serverAnswer, "%d %d %d %d %lf", &tipoDeResposta,
+												(int*) &clientAnswerID, 
+												&codigoProduto,
+												&quantidadeStock,
+												&precoLido);
+		
+		if (clientAnswerID == processID) { 
+
+			switch (tipoDeResposta) {
+
+				//Mostrar resultado de printStockPreco
+				case 0: 
+					sprintf(resposta, "Artigo: %d | Stock: %d | Faturado: %lf\n", codigoProduto,
+																				quantidadeStock,
+																				precoLido);
+					break;
+
+				case 1:
+					sprintf(resposta, "Quantidade de stock: %d\n", quantidadeStock);
+					break;
+
+				default: break;
+			}
+
+			if (write(1 , resposta, strlen(resposta))!=-1);
+			
 			close(fd_pipe_pedidos);
 		
 		} else {
 			
-			if (write(n_pipe_pedido, bufferResposta, 
-				strlen(bufferResposta)) != -1);
+			if (write(n_pipe_pedido, serverAnswer, strlen(serverAnswer)) != -1);
 
 			close(fd_pipe_pedidos);
 		}
