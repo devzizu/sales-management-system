@@ -10,10 +10,6 @@
 
 #include "../GLOBAL_SOURCE/global.h"
 
-#define TAM_PEDIDO 25
-
-#define TAM_RESPOSTA 43
-
 int main(int argc, char* argv[]) {
 
 
@@ -39,10 +35,12 @@ int main(int argc, char* argv[]) {
 
 	fd = open("../PipeVendas/pipeClienteVendas", O_WRONLY);
 
+	int pedidosClientes = open("../PipeVendas/VendasRepository.txt", O_RDONLY, 0666);
+
 	do {
 
 		//Enviar para o server------------------------------------------
-		n = read(0, clientRequest, MAX_LINE);
+		n = readln(pedidosClientes, clientRequest, MAX_LINE);
 
 		if(clientRequest[0] != '\n') {
 
@@ -73,6 +71,7 @@ int main(int argc, char* argv[]) {
 
 		n_pipe_pedido = read(fd_pipe_pedidos, serverAnswer, TAM_RESPOSTA);
 		
+		if (n_pipe_pedido == 0) break;
 
 		int tipoDeResposta, codigoProduto, quantidadeStock;
 		double precoLido;

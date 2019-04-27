@@ -63,7 +63,7 @@ int main(int argc, char const *argv[]) {
 	char *preco;
 
  	//Ler a primeira linha
-	n = readln(fd_artigos, buffer, MAX_LINE);
+	n = read(fd_artigos, buffer, LINE_ARTIGOS);
  	
  	//Ler o resto das linhas
  	do {

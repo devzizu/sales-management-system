@@ -1,16 +1,18 @@
 #ifndef _GLOBAL_
 #define _GLOBAL_
 
-#define PATH_ARTIGOS "FILES/ARTIGOS.txt"
-#define PATH_STRINGS "FILES/STRINGS.txt"
-#define PATH_STOCK "FILES/STOCK.txt"
-#define PATH_VENDAS "FILES/VENDAS.txt"
+#define PATH_ARTIGOS "../FILES/ARTIGOS.txt"
+#define PATH_STRINGS "../FILES/STRINGS.txt"
+#define PATH_STOCK "../FILES/STOCK.txt"
+#define PATH_VENDAS "../FILES/VENDAS.txt"
 
 #define PATH_TMP_ARTIGOS "FILES/tmpArtigos.txt"
 #define PATH_TMP_STOCK "FILES/tmpStock.txt"
 
 #define MAX_LINE 150
 #define LINE_ARTIGOS 22
+#define TAM_PEDIDO 25
+#define TAM_RESPOSTA 43
 
 double trash_ammount_in_file (char *path);
 
