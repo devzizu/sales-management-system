@@ -9,11 +9,13 @@
 
 #include "../GLOBAL_SOURCE/global.h"
 
-#define LINE_STOCK 11
+#define LINE_STOCK 9
 
 #define TAM_PEDIDO 25
 
 #define TAM_RESPOSTA 43
+
+#define BASE_PATH "../PipeVendas/pipePrintCliente"
 
 //----------------------------------------------------
 
@@ -73,13 +75,21 @@ void printStockPreco(int codigoProduto, int clientID) {
 														codigoProduto, 
 														quantidadeStock, 
 														precoLido);
-
-	int fd_pipe_escrita = open("../PipeVendas/pipePrintCliente", O_WRONLY);
 	
+
+
+
+	char pathCliente[200];
+	sprintf(pathCliente, "%s%d", BASE_PATH, (int) clientID);
+
+	int fd_pipe_escrita = open(pathCliente, O_WRONLY);
+
 	if(write(fd_pipe_escrita, 
 		bufferEscrita, TAM_RESPOSTA)!=-1);
 
 	close(fd_pipe_escrita);
+
+
 
 	//Já nao é necessario o ficheiro artigos
 	close(fd_artigo);
@@ -100,9 +110,12 @@ void updateQuantidadeStock (int codigo, int novaQuantidade, int clientID) {
 	offset = lseek(fd_stock, pos_leitura, SEEK_SET);
 
 	int finalQuantidade = atoi(stockAntigo) + novaQuantidade;
-	sprintf(stockAntigo, "%010d\n", finalQuantidade);	
+	
+	char newStock[10];
 
-	if (write(fd_stock, stockAntigo, strlen(stockAntigo)) != -1);
+	sprintf(newStock, "%08d\n", finalQuantidade);	
+
+	if (write(fd_stock, newStock, 9) != -1);
 
 	close(fd_stock);
 
@@ -112,11 +125,15 @@ void updateQuantidadeStock (int codigo, int novaQuantidade, int clientID) {
 														finalQuantidade, 
 														0.0);
 
-	int fd_pipe_escrita = open("../PipeVendas/pipePrintCliente", O_WRONLY);
+
+	char pathCliente[200];
+	sprintf(pathCliente, "%s%d", BASE_PATH, (int) clientID);
+
+	int fd_pipe_escrita = open(pathCliente, O_WRONLY);
 	
 	if(write(fd_pipe_escrita, 
 		bufferEscrita, TAM_RESPOSTA)!=-1);
-	
+
 	close(fd_pipe_escrita);
 }
 
@@ -165,7 +182,7 @@ void updateVenda (int codigo, int quantidade)
 int main() 
 {
 	//Numero de chars lidos pelo read
-	int n = 1;
+	int n = 1, i = 0;
 
 	//Array de strings para guardar o comando lido
 	char** campos;
@@ -173,48 +190,40 @@ int main()
 	//Para guardar o comando lido
 	char buffer[MAX_LINE];
 
-	do 
-	{
-		char buffer[MAX_LINE];
-		
-		int fd;
-		fd = open("../PipeVendas/pipeClienteVendas", O_RDONLY);
+	int fd_pedidos = open("../PipeVendas/pipeClienteVendas", O_RDONLY);
+	
+	while(1) {
 
-		while(1) {
+		n = read(fd_pedidos, buffer, TAM_PEDIDO);
+	
+		if (n <= 0) break;
 
-			n = read(fd, buffer, TAM_PEDIDO);
-		
-			if(n <= 0)
-				break;
+		campos = tokenizePedidodServidor(buffer);
 
-			campos = tokenizePedidodServidor(buffer);
+		//Os comandos inseridos podem ser dois:
+		//1: <codigo> -> mostra o stock
+		//2: <codigo> <quantidade> -> atualiza o stock e mostra novo stock
+		//Se tiver um espaço então é o 2º comando
+		if(atoi(campos[2]) != 0) {
 
-			//Os comandos inseridos podem ser dois:
-			//1: <codigo> -> mostra o stock
-			//2: <codigo> <quantidade> -> atualiza o stock e mostra novo stock
-			//Se tiver um espaço então é o 2º comando
-			if(atoi(campos[2]) != 0) {
+			int codigo = atoi(campos[1]), quantidade = atoi(campos[2]);
 
-				int codigo = atoi(campos[1]), quantidade = atoi(campos[2]);
-
-				if (quantidade > 0) 
-					updateQuantidadeStock(codigo, quantidade, atoi(campos[0]));
-				else	
-				{	
-					updateQuantidadeStock(codigo, quantidade, atoi(campos[0]));
-					updateVenda(codigo, abs(quantidade));
-				}
-			} 
-			else {
-
-				//Passo-lhe o codigo do produto em questao
-				printStockPreco(atoi(campos[1]), atoi(campos[0]));
+			if (quantidade > 0) 
+				updateQuantidadeStock(codigo, quantidade, atoi(campos[0]));
+			else	
+			{	
+				updateQuantidadeStock(codigo, quantidade, atoi(campos[0]));
+				updateVenda(codigo, abs(quantidade));
 			}
-		}
-		
-		close(fd);
+		} 
+		else {
 
-	} while(n > 0 && buffer[0] != '\n');
+			//Passo-lhe o codigo do produto em questao
+			printStockPreco(atoi(campos[1]), atoi(campos[0]));
+		}
+	}
+	
+	close(fd_pedidos);
 	
 	return 0;
 }
