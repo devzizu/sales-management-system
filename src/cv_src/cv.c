@@ -42,15 +42,25 @@ int main(int argc, char* argv[]) {
 	char serverAnswer[MAX_LINE];
 	char resposta[MAX_LINE];
 
+	int pipeEnvioServer = open("../PipeVendas/pipeClienteVendas", O_WRONLY);
+
 	//Ficheiro que contém os comandos a serem lidos
 	int pedidosClientes = open("../PipeVendas/VendasRepository.txt", O_RDONLY, 0666);
-	
-	int pipeEnvioServer = open("../PipeVendas/pipeClienteVendas", O_WRONLY);
 
 	int ret = fcntl(pipeEnvioServer, F_SETPIPE_SZ, 1024 * 1024);
 	if (ret < 0) printf("error size\n");
 
-	do {
+	//Abrir pipe de respostas do servidor
+	int fd_read_pipe;
+	int fd_write_pipe;
+
+	int fd_rdwr = open(pathCliente, O_RDWR);
+
+	int tipoDeResposta;
+	double precoLido;
+	
+	n = 1;
+	while (n > 0) {
 
 		n = readln(pedidosClientes, clientRequest, MAX_LINE);	
 
@@ -74,34 +84,7 @@ int main(int argc, char* argv[]) {
 		//Enviar pedido para o servidor
 		if(write(pipeEnvioServer, pedidoBuffer, TAM_PEDIDO) != -1);
 
-		//Contar as inserções que este cliente fez
-		//Depois uso este numero para verificar se o pipe esta vazio
-		pipe_insertions++;
-
-	} while (n > 0);
-	
-	close(pipeEnvioServer);
-	close(pedidosClientes);
-
-	//Para debug
-	printf("Acabei de ler os comandos...\n");
-
-	int tipoDeResposta;
-	double precoLido;
-	
-	codigo = 1;
-
-	//Abrir pipe de respostas do servidor
-	int fd_read_pipe;
-	int fd_write_pipe;
-	
-	fd_read_pipe = open(pathCliente, O_RDONLY);
-	fd_write_pipe = open(pathCliente, O_WRONLY);
-	
-	//Enquanto tem coisas no pipe		
-	while (pipe_insertions > 0) {
-
-		if (read(fd_read_pipe, serverAnswer, TAM_RESPOSTA) == -1);
+		if (read(fd_rdwr, serverAnswer, TAM_RESPOSTA) == -1);
 
 		sscanf(serverAnswer, "%d %d %d %d %lf", &tipoDeResposta,
 												(int*) &clientAnswerID, 
@@ -131,14 +114,16 @@ int main(int argc, char* argv[]) {
 
 		} else {
 			
-			if (write(fd_write_pipe, serverAnswer, TAM_RESPOSTA)==-1);
+			if (write(fd_rdwr, serverAnswer, TAM_RESPOSTA)==-1);
 		}
 
-		pipe_insertions--;
-	}		
-
-	close(fd_read_pipe);
-	close(fd_write_pipe);
+	} 
+	
+	close(pipeEnvioServer);
+	close(pedidosClientes);
+	close(fd_rdwr);
+	//close(fd_read_pipe);
+	//close(fd_write_pipe);
 
 	if (remove("../PipeVendas/pipeClienteVendas") != -1);
 	if (remove(pathCliente) != -1);
