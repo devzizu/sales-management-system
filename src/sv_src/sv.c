@@ -189,13 +189,13 @@ int main()
 
 	//Para guardar o comando lido
 	char buffer[MAX_LINE];
-
+	
 	int fd_pedidos = open("../PipeVendas/pipeClienteVendas", O_RDONLY);
 	
-	while(1) {
+	while(n > 0) {
 
 		n = read(fd_pedidos, buffer, TAM_PEDIDO);
-	
+
 		if (n <= 0) break;
 
 		campos = tokenizePedidodServidor(buffer);
@@ -225,5 +225,7 @@ int main()
 	
 	close(fd_pedidos);
 	
+	main();
+
 	return 0;
 }

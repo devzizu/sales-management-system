@@ -19,10 +19,16 @@
 
 int main(int argc, char* argv[]) {
 
+	//-------------------------------------------------
+
+	//Process ID do cliente
 	pid_t processID = getpid();
+	//Identificador do cliente no servidor de vendas
 	pid_t clientAnswerID;
 
-	//FIFO de envio ao servidor
+	//-------------------------------------------------
+
+	//FIFO de envio dos pedidos do cliente ao servidor
 	mkfifo("../PipeVendas/pipeClienteVendas", 0600);	
 	
 	char pathCliente[200];
@@ -49,10 +55,6 @@ int main(int argc, char* argv[]) {
 
 	int ret = fcntl(pipeEnvioServer, F_SETPIPE_SZ, 1024 * 1024);
 	if (ret < 0) printf("error size\n");
-
-	//Abrir pipe de respostas do servidor
-	int fd_read_pipe;
-	int fd_write_pipe;
 
 	int fd_rdwr = open(pathCliente, O_RDWR);
 
@@ -122,9 +124,7 @@ int main(int argc, char* argv[]) {
 	close(pipeEnvioServer);
 	close(pedidosClientes);
 	close(fd_rdwr);
-	//close(fd_read_pipe);
-	//close(fd_write_pipe);
 
-	if (remove("../PipeVendas/pipeClienteVendas") != -1);
+//	if (remove("../PipeVendas/pipeClienteVendas") != -1);
 	if (remove(pathCliente) != -1);
 }
