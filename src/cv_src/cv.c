@@ -70,7 +70,7 @@ int main(int argc, char* argv[]) {
 
 	while (n > 0) {
 
-		n = readln(pedidosClientes, clientRequest, MAX_LINE);	
+		n = readln(0, clientRequest, MAX_LINE);	
 		
 		if (strlen(clientRequest) <= 0) break; 
 
@@ -79,8 +79,20 @@ int main(int argc, char* argv[]) {
 
 		if (!strcmp(clientRequest, AGREGADOR)) {
 
-			system("./../ag_src/ag");
+			pid = fork();
 
+			if (pid == 0) {
+
+				execl(AGR_EXEC_PATH, "./ag", NULL);
+
+				_exit(0);
+
+			} else if (pid > 0) {
+
+				wait(NULL);
+
+			}
+			
 		} else {
 
 			spaces = nr_spaces_in_string(clientRequest);
