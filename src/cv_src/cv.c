@@ -2,6 +2,7 @@
 
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/wait.h>
 #include <fcntl.h>
 #include <unistd.h>
 
@@ -16,6 +17,8 @@
 #include "../GLOBAL_SOURCE/global.h"
 
 #define BASE_PATH "../PipeVendas/pipePrintCliente"
+#define AGR_EXEC_PATH "../ag_src/ag"
+#define AGREGADOR "ag"
 
 int main(int argc, char* argv[]) {
 
@@ -53,8 +56,8 @@ int main(int argc, char* argv[]) {
 	//Ficheiro que contém os comandos a serem lidos
 	int pedidosClientes = open("../PipeVendas/VendasRepository.txt", O_RDONLY, 0666);
 
-	int ret = fcntl(pipeEnvioServer, F_SETPIPE_SZ, 1024 * 1024);
-	if (ret < 0) printf("error size\n");
+	//int ret = fcntl(pipeEnvioServer, F_SETPIPE_SZ, 1024 * 1024);
+	//if (ret < 0) printf("error size\n");
 
 	int fd_rdwr = open(pathCliente, O_RDWR);
 
@@ -62,40 +65,52 @@ int main(int argc, char* argv[]) {
 	double precoLido;
 	
 	n = 1;
+
+	pid_t pid;
+
 	while (n > 0) {
 
 		n = readln(pedidosClientes, clientRequest, MAX_LINE);	
+		
+		if (strlen(clientRequest) <= 0) break; 
 
-		spaces = nr_spaces_in_string(clientRequest);
+		if(clientRequest[strlen(clientRequest)-1] == '\n')
+			clientRequest[strlen(clientRequest)-1]='\0';
 
-		if (spaces == 0 && strlen(clientRequest) > 0) {
+		if (!strcmp(clientRequest, AGREGADOR)) {
 
-			sprintf(pedidoBuffer, "%07d %08d %08d", processID, 
-										      	 	atoi(clientRequest),
-										      	 	0);
+			system("./../ag_src/ag");
 
-		} else if (spaces == 1) {
+		} else {
 
-			sscanf(clientRequest, "%d %d", &codigo, &quantidade);
+			spaces = nr_spaces_in_string(clientRequest);
 
-			sprintf(pedidoBuffer, "%07d %08d %08d", processID, 
-				                             	 	codigo,
-				                              		quantidade);
-		}
+			if (spaces == 0 && strlen(clientRequest) > 0) {
 
-		//Enviar pedido para o servidor
-		if(write(pipeEnvioServer, pedidoBuffer, TAM_PEDIDO) != -1);
+				sprintf(pedidoBuffer, "%07d %08d %08d", processID, 
+											      	 	atoi(clientRequest),
+											      	 	0);
 
-		if (read(fd_rdwr, serverAnswer, TAM_RESPOSTA) == -1);
+			} else if (spaces == 1) {
 
-		sscanf(serverAnswer, "%d %d %d %d %lf", &tipoDeResposta,
-												(int*) &clientAnswerID, 
-												&codigo,
-												&quantidade,
-												&precoLido);
-				
-		if (clientAnswerID == processID) { 
+				sscanf(clientRequest, "%d %d", &codigo, &quantidade);
 
+				sprintf(pedidoBuffer, "%07d %08d %08d", processID, 
+					                             	 	codigo,
+					                              		quantidade);
+			}
+
+			//Enviar pedido para o servidor
+			if(write(pipeEnvioServer, pedidoBuffer, TAM_PEDIDO) != -1);
+
+			if (read(fd_rdwr, serverAnswer, TAM_RESPOSTA) == -1);
+
+			sscanf(serverAnswer, "%d %d %d %d %lf", &tipoDeResposta,
+													(int*) &clientAnswerID, 
+													&codigo,
+													&quantidade,
+													&precoLido);
+					
 			switch (tipoDeResposta) {
 
 				//Mostrar resultado de printStockPreco
@@ -110,15 +125,11 @@ int main(int argc, char* argv[]) {
 					break;
 
 				default: break;
+		
 			}
 
 			if (write(1 , resposta, strlen(resposta))!=-1);
-
-		} else {
-			
-			if (write(fd_rdwr, serverAnswer, TAM_RESPOSTA)==-1);
 		}
-
 	} 
 	
 	close(pipeEnvioServer);

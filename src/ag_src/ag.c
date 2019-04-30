@@ -139,8 +139,6 @@ int hashTable_to_ficheiro (char *path, GHashTable *arg) {
 
 int main () {
 
-	if (system("clear") != -1);
-
 	//Criar a arvore de vendasTable
 	GHashTable *vendasTable = NULL;
 
@@ -168,8 +166,6 @@ int main () {
 
  		sscanf(buffer, "%s %s", key, val);
 
- 		printf("buff=%s", buffer);
-
 		//Inicializar a lista a NULL
 		GList *listaNova = g_list_alloc();
 		listaNova = NULL;
@@ -184,8 +180,6 @@ int main () {
 
 		//Inserir o elemento na hashtable
 		res = g_hash_table_insert(vendasTable, strdup(key), listaNova);
-
-		printf("Ja existe %s? %s\n\n", key, res==TRUE?"Nao":"Sim");
 
  		n = readln(fd_vendasTable, buffer, MAX_LINE);
  	
@@ -202,7 +196,7 @@ int main () {
 	//--------------------------------------------------------------
 
 	//Mandar para o ficheiro e stdout
-	hashTable_to_stdout(agregada);
+	//hashTable_to_stdout(agregada);
 
 	//Nome do ficheiro é a data e hora atual, vou buscar ao sistema
 
@@ -211,7 +205,7 @@ int main () {
 	time_t t = time(NULL);
 	struct tm tm = *localtime(&t);
 
-	sprintf(datePath, "FILES/%d-%d-%dT%d:%d:%d", tm.tm_year + 1900, 
+	sprintf(datePath, "../FILES/%d-%d-%dT%d:%d:%d", tm.tm_year + 1900, 
 										   tm.tm_mon + 1, 
 										   tm.tm_mday, 
 										   tm.tm_hour, 

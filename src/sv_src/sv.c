@@ -77,8 +77,6 @@ void printStockPreco(int codigoProduto, int clientID) {
 														precoLido);
 	
 
-
-
 	char pathCliente[200];
 	sprintf(pathCliente, "%s%d", BASE_PATH, (int) clientID);
 
@@ -124,7 +122,6 @@ void updateQuantidadeStock (int codigo, int novaQuantidade, int clientID) {
 														0, 
 														finalQuantidade, 
 														0.0);
-
 
 	char pathCliente[200];
 	sprintf(pathCliente, "%s%d", BASE_PATH, (int) clientID);
