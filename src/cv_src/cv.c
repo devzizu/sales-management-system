@@ -20,6 +20,9 @@
 #define AGR_EXEC_PATH "../ag_src/ag"
 #define AGREGADOR "ag"
 
+static char invalidCMD[44] = "[./cv] client inserted an invalid command.\n";
+static char overflowCode[51] = "[./cv] client requested code that does not exist.\n";
+
 int main(int argc, char* argv[]) {
 
 	//-------------------------------------------------
@@ -43,7 +46,7 @@ int main(int argc, char* argv[]) {
 	int n, n_pipe_pedido;
 	int fd_pipe_pedidos;
 
-	int spaces = 0, quantidade = 0, codigo = 0;
+	int spaces = 0, quantidade = 0, codigo = 0, codigoPedido;
 	int pipe_insertions = 0;
 
 	char pedidoBuffer[MAX_LINE];
@@ -56,6 +59,8 @@ int main(int argc, char* argv[]) {
 	//Ficheiro que contém os comandos a serem lidos
 	int pedidosClientes = open("../PipeVendas/VendasRepository.txt", O_RDONLY, 0666);
 
+	int errorLog = open(PATH_ERRORLOG, O_WRONLY|O_APPEND, 0666);
+
 	//int ret = fcntl(pipeEnvioServer, F_SETPIPE_SZ, 1024 * 1024);
 	//if (ret < 0) printf("error size\n");
 
@@ -63,6 +68,7 @@ int main(int argc, char* argv[]) {
 
 	int tipoDeResposta;
 	double precoLido;
+	int successScanf;
 	
 	n = 1;
 
@@ -70,7 +76,7 @@ int main(int argc, char* argv[]) {
 
 	while (n > 0) {
 
-		n = readln(0, clientRequest, MAX_LINE);	
+		n = readln(pedidosClientes, clientRequest, MAX_LINE);	
 		
 		if (strlen(clientRequest) <= 0) break; 
 
@@ -99,19 +105,43 @@ int main(int argc, char* argv[]) {
 
 			if (spaces == 0 && strlen(clientRequest) > 0) {
 
-				sprintf(pedidoBuffer, "%07d %08d %08d", processID, 
-											      	 	atoi(clientRequest),
-											      	 	0);
+				codigoPedido = is_number_int(clientRequest);
+
+				if (codigoPedido > 0) {
+
+					sprintf(pedidoBuffer, "%07d %08d %08d", processID, 
+												      	 	codigoPedido,
+												      	 	0);
+				} else {
+
+					if (write(errorLog, invalidCMD, strlen(invalidCMD)) != -1);
+
+					continue;
+				}
 
 			} else if (spaces == 1) {
 
-				sscanf(clientRequest, "%d %d", &codigo, &quantidade);
+				successScanf = sscanf(clientRequest, "%d %d", &codigo, &quantidade);
 
-				sprintf(pedidoBuffer, "%07d %08d %08d", processID, 
-					                             	 	codigo,
-					                              		quantidade);
+				if (successScanf == 2) {
+
+					sprintf(pedidoBuffer, "%07d %08d %08d", processID, 
+						                             	 	codigo,
+						                              		quantidade);
+				} else {
+
+					if (write(errorLog, invalidCMD, strlen(invalidCMD)) != -1);
+
+					continue;					
+				}
+
+			} else {
+				
+				if (write(errorLog, invalidCMD, strlen(invalidCMD)) != -1);
+				
+				continue;
 			}
-
+			
 			//Enviar pedido para o servidor
 			if(write(pipeEnvioServer, pedidoBuffer, TAM_PEDIDO) != -1);
 
@@ -130,24 +160,31 @@ int main(int argc, char* argv[]) {
 					sprintf(resposta, "Artigo: %d | Stock: %d | Preco: %lf\n", codigo,
 																				quantidade,
 																				precoLido);
+					if (write(1 , resposta, strlen(resposta))!=-1);
 					break;
 
 				case 1:
 					sprintf(resposta, "Quantidade de stock: %d\n", quantidade);
+					
+					if (write(1 , resposta, strlen(resposta))!=-1);
+					break;
+
+				case 3:
+
+					if (write(errorLog, overflowCode, strlen(overflowCode)) != -1);
+
 					break;
 
 				default: break;
 		
 			}
-
-			if (write(1 , resposta, strlen(resposta))!=-1);
 		}
 	} 
 	
 	close(pipeEnvioServer);
 	close(pedidosClientes);
 	close(fd_rdwr);
+	close(errorLog);
 
-//	if (remove("../PipeVendas/pipeClienteVendas") != -1);
 	if (remove(pathCliente) != -1);
 }

@@ -66,6 +66,25 @@ void printStockPreco(int codigoProduto, int clientID) {
 
 	n = readln(fd_artigo, buffer, LINE_ARTIGOS);
 
+	char pathCliente[200];
+	sprintf(pathCliente, "%s%d", BASE_PATH, (int) clientID);
+
+	//Caso o codigo exceda o tamanho do ficheiro
+	if (buffer == NULL || strlen(buffer) == 0) {
+
+		char error_overflow[MAX_LINE];
+
+		int fd_pipe_escrita = open(pathCliente, O_WRONLY);
+	
+		sprintf(error_overflow, "3 %07d %08d %08d %012.2lf", 0, 0, 0, 0.0);
+
+		if(write(fd_pipe_escrita, error_overflow, TAM_RESPOSTA)!=-1);
+
+		close(fd_pipe_escrita);
+
+		return;
+	}
+	
 	char **campos = tokenizeArtigo(campos, buffer);
 
 	double precoLido = atof(campos[1]);
@@ -76,9 +95,6 @@ void printStockPreco(int codigoProduto, int clientID) {
 														quantidadeStock, 
 														precoLido);
 	
-
-	char pathCliente[200];
-	sprintf(pathCliente, "%s%d", BASE_PATH, (int) clientID);
 
 	int fd_pipe_escrita = open(pathCliente, O_WRONLY);
 

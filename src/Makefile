@@ -49,3 +49,7 @@ cv:
 	cd $(CV) && mkdir -p obj/ && $(MAKE)
 	cd ..
 	echo "Cliente Vendas compiled..."
+
+clean:
+	rm -rf FILES/2019*
+	rm -rf PipeVendas/pipePrint*

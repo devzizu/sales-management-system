@@ -1,3 +1,11 @@
 [./ma] invalid command.
 [./ma] invalid number.
 [./ma] invalid number.
+[./cv] client inserted an invalid command.
+[./cv] client inserted an invalid command.
+[./cv] client inserted an invalid command.
+[./cv] client inserted an invalid command.
+[./cv] client inserted an invalid command.
+[./cv] client inserted an invalid command.
+[./cv] client requested code that does not exist.
+[./cv] client requested code that does not exist.
