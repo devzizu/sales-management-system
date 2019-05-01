@@ -8,6 +8,9 @@
 
 #include "../GLOBAL_SOURCE/global.h"
 
+static char err_reading_num[24] = "[./ma] invalid number.\n";
+static char err_reading_cmd[25] = "[./ma] invalid command.\n";
+
 //-----------------------------------------------------------------
 
 void atualizaNome (int ref_antiga, char *novoNome) {
@@ -69,8 +72,6 @@ void atualizaPreco (int referencia, double novoPreco) {
 	int n;
 	n = readln(fd_artigo, buffer, MAX_LINE);
 
-	printf("%s\n", buffer);
-
 	//Sacar o preco que estava na linha que quero alterar
 	//Fazendo sscanf do buffer
 	char precoAntigo[MAX_LINE], tmp[MAX_LINE];
@@ -93,10 +94,7 @@ void atualizaPreco (int referencia, double novoPreco) {
 
 int main () {
 
-	//---------------------------------------------------------
-
-	//Limpar o terminal
-	if (system("clear") != -1);
+	int errorsLog = open (PATH_ERRORLOG, O_WRONLY|O_APPEND, 0666);
 
 	//---------------------------------------------------------
 
@@ -107,6 +105,13 @@ int main () {
 	//Array de Strings que guarda os campos do comando
 	char **campos;
 
+	//Numeros lidos apos checking
+	double verified_float;
+	int verified_int;
+
+	//Variavel que guarda a ultima linha adicionada no Strings.txt
+	int *ultimaLinha = (int*) malloc(sizeof(int));
+
 	//---------------------------------------------------------
 
 	while (n > 0) {
@@ -114,31 +119,59 @@ int main () {
 		//Ler o comando do stdin
 		n = readln(0, buffer, MAX_LINE);
 
-		//Separar o comando lido num array de strings
-		campos = tokenizeComando(buffer);
+		if (nr_spaces_in_string(buffer) == 2) {
 
-		//Função a executar mediante o comando
-		switch(campos[0][0]) {
+			//Separar o comando lido num array de strings
+			campos = tokenizeComando(buffer);
 
-			//Inserir novo artigo:> i <nome> <preco>
-			case 'i': 
-					inserirArtigo(campos[1], atof(campos[2]));
+			//Função a executar mediante o comando
+			switch(campos[0][0]) {
+
+				//Inserir novo artigo:> i <nome> <preco>
+				case 'i': 
+
+						//Caso corra bem esta função retorna > 0 (o número)
+						verified_float = is_number_float(campos[2]);
+
+						if (verified_float >= 0)
+							inserirArtigo(campos[1], verified_float);
+						else
+							if (write(errorsLog, err_reading_num, strlen(err_reading_num)) != -1);
+						
+						break;
+
+				//Alterar o nome do artigo:> n <codigo> <novo nome>
+				case 'n':
+						verified_int = is_number_int(campos[1]);
+
+						if (verified_int >= 0)
+							atualizaNome(verified_int, campos[2]);
+						else
+							if (write(errorsLog, err_reading_num, strlen(err_reading_num)) != -1);
+
+						break;
+
+				//Alterar o preco do artigo:> p <codigo> <novo preco>
+				case 'p':
+						verified_float = is_number_float(campos[2]);
+						verified_int   = is_number_int(campos[1]);
+
+						if (verified_int >= 0 && verified_float >= 0)
+							atualizaPreco(verified_int, verified_float);
+						else
+							if (write(errorsLog, err_reading_num, strlen(err_reading_num)) != -1);
+
+						break;
+
+				default: 
+
+						if (write(errorsLog, err_reading_cmd, strlen(err_reading_cmd)) != -1);
 					break;
-
-			//Alterar o nome do artigo:> n <codigo> <novo nome>
-			case 'n': 
-					atualizaNome(atoi(campos[1]), campos[2]);
-					break;
-
-			//Alterar o preco do artigo:> p <codigo> <novo preco>
-			case 'p':
-					atualizaPreco(atoi(campos[1]), atof(campos[2]));
-					break;
-
-			default: break;
+			}
 		}
-
 	}
+
+	close(errorsLog);
 
 	return 0;
 }

@@ -5,6 +5,7 @@
 #define PATH_STRINGS "../FILES/STRINGS.txt"
 #define PATH_STOCK "../FILES/STOCK.txt"
 #define PATH_VENDAS "../FILES/VENDAS.txt"
+#define PATH_ERRORLOG "../FILES/ERRORLOG.log"
 
 #define PATH_TMP_ARTIGOS "FILES/tmpArtigos.txt"
 #define PATH_TMP_STOCK "FILES/tmpStock.txt"
@@ -15,6 +16,10 @@
 #define TAM_RESPOSTA 43
 
 double trash_ammount_in_file (char *path);
+
+double is_number_float (char* string);
+
+int is_number_int (char* string);
 
 int inserirArtigo (char* nome, double preco);
 

@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 #include "global.h"
 
@@ -106,6 +107,30 @@ int linhasFicheiro (char *path) {
 	close(fd);
 
 	return l;
+}
+
+double is_number_float (char* string) {
+
+	int i;
+	for (i = 0; string[i] != '\n' && string[i] != '\0'; i++) {
+
+		if(!isdigit(string[i]) && string[i] != '.')  
+			return -1;
+	}
+
+	return atof(string);
+}
+
+int is_number_int (char* string) {
+
+	int i;
+	for (i = 0; string[i] != '\n' && string[i] != '\0'; i++) {
+
+		if(!isdigit(string[i]))  
+			return -1;
+	}
+
+	return atoi(string);
 }
 
 int nr_spaces_in_string (char *string) {
