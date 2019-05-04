@@ -1,3 +1,14 @@
+
+//-------------------------------------------------------------------------------
+
+/** @file global.c
+*
+*	@brief Ficheiro que contém funções auxiliares aos programas.
+*
+*/
+
+//-------------------------------------------------------------------------------
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
@@ -12,49 +23,7 @@
 
 #include "global.h"
 
-//Vai ser sempre o ficheiro artigos
-double trash_ammount_in_file (char *path) {
-
-	//percentagem de lixo no ficheiro
-	double trash = 0.0;
-
-	int fd_artigos = open(path, O_RDONLY, 0666);
-
-	//Nº de bytes lidos pelo readline
-	int n = 0, linha = 1, lixo = 0;
- 	
- 	//Linha lida
-	char buffer[MAX_LINE];
-	//Referencia na linha
-	char *key_ref;
-	//Preco lido
-	char *preco;
-
- 	//Ler a primeira linha
-	n = readln(fd_artigos, buffer, MAX_LINE);
- 	
- 	//Ler o resto das linhas
- 	do {
-
- 		//Sacar o preco e referencia (para o ficheiro strings)
- 		key_ref = strdup(strtok(buffer, " "));
- 		preco   = strdup(strtok(NULL  , " "));
-
- 		if (atoi(key_ref) != linha) 
- 			lixo++;
- 		
- 		n = readln(fd_artigos, buffer, MAX_LINE);
- 		
- 		linha++;
-
-	} while (n > 0);
-
-	close(fd_artigos);
-
-	trash = (double) lixo / linha;
-
-	return trash;
-}
+//-------------------------------------------------------------------------------
 
 //Retorna a ultima linha onde foi inserido
 int inserirArtigo (char* nome, int preco, int stock) {
@@ -110,6 +79,8 @@ int inserirArtigo (char* nome, int preco, int stock) {
 	return index;
 }
 
+//*************************************************************************************
+
 int linhasFicheiro (char *path) {
 
 	int n = 1, fd = open(path, O_RDONLY, 0666);
@@ -126,17 +97,7 @@ int linhasFicheiro (char *path) {
 	return l;
 }
 
-double is_number_float (char* string) {
-
-	int i;
-	for (i = 0; string[i] != '\n' && string[i] != '\0'; i++) {
-
-		if(!isdigit(string[i]) && string[i] != '.')  
-			return -1;
-	}
-
-	return atof(string);
-}
+//*************************************************************************************
 
 int is_number_int (char* string) {
 
@@ -150,6 +111,8 @@ int is_number_int (char* string) {
 	return atoi(string);
 }
 
+//************************************************************************************
+
 int nr_spaces_in_string (char *string) {
 
 	int i = 0, counter = 0;
@@ -162,6 +125,8 @@ int nr_spaces_in_string (char *string) {
 	return counter;
 }
 
+//*************************************************************************************
+
 char** tokenizeComandoCV (char* string) {
 
 	char **campos = (char**) malloc(sizeof(char*) * 2);
@@ -171,6 +136,8 @@ char** tokenizeComandoCV (char* string) {
 
 	return campos;
 }
+
+//*************************************************************************************
 
 char** tokenizePedidodServidor (char *pedido) {
 
@@ -183,6 +150,8 @@ char** tokenizePedidodServidor (char *pedido) {
 	return campos;
 }
 
+//*************************************************************************************
+
 char** tokenizeComando (char* string) {
 
 	char **campos = (char**) malloc(sizeof(char*) * 3);
@@ -194,6 +163,8 @@ char** tokenizeComando (char* string) {
 	return campos;
 }
 
+//*************************************************************************************
+
 char** tokenizeArtigo (char **campos, char* string) {
 
 	campos = (char**) malloc(sizeof(char*) * 2);
@@ -203,6 +174,8 @@ char** tokenizeArtigo (char **campos, char* string) {
 
 	return campos;
 }
+
+//*************************************************************************************
 
 size_t readline (int fd, char* buffer, size_t nbyte) {
 
@@ -227,6 +200,8 @@ size_t readline (int fd, char* buffer, size_t nbyte) {
 	return bytes_lidos;
 }
 
+//*************************************************************************************
+
 size_t readln (int fd, char *buf, size_t max) {
 
 	int i, n;
@@ -243,6 +218,8 @@ size_t readln (int fd, char *buf, size_t max) {
     return i;
 }
 
+//*************************************************************************************
+
 size_t readNbytesOnce (int fd, char* buf, size_t nr_bytes) {
 
 	int n = 0;
@@ -253,6 +230,8 @@ size_t readNbytesOnce (int fd, char* buf, size_t nr_bytes) {
 
 	return n;
 }
+
+//*************************************************************************************
 
 int cat_file (char *file_to_cat) {
 

@@ -1,3 +1,12 @@
+//-------------------------------------------------------------------------------
+
+/** @file artigos.c
+*
+*	@brief Ficheiro que contem a implementação de uma struct que guarda artigos.
+*
+*/
+
+//-------------------------------------------------------------------------------
 
 #include <stdlib.h>
 #include <string.h>
@@ -7,17 +16,27 @@
 
 #include "artigos.h"
 
+//-------------------------------------------------------------------------------
+
+/**
+* Struct que armazena um artigo (os seus atributos).
+*/
+
 struct artigo {
+	
+	/*@{*/
+	char* key; /**< referencia do produto. */
 
-	char* key;
+	char* nome; /**< Nome do produto. */
+	double preco; /**< Preco do produto. */
+	int stock; /**< Quantidade de stock do produto. */
 
-	char* nome;
-	double preco;
-	int stock;
+	int pos; /**< Codigo real do produto. */
 
-	int pos;
-
+	/*@}*/
 };
+
+//-------------------------------------------------------------------------------
 
 ARTIGO initArtigo (ARTIGO novo) {
 

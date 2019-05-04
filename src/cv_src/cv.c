@@ -1,3 +1,13 @@
+//-------------------------------------------------------------------------------
+
+/** @file cv.c
+*
+*	@brief Ficheiro que implementa o cliente do servidor de vendas.
+*
+*/
+
+//-------------------------------------------------------------------------------
+
 #define _GNU_SOURCE
 
 #include <sys/types.h>
@@ -16,13 +26,33 @@
 
 #include "../GLOBAL_SOURCE/global.h"
 
+//-------------------------------------------------------------------------------
+
+/**MACRO path base do pipe servidor >> cliente*/
 #define BASE_PATH "../PipeVendas/pipePrintCliente"
+/**MACRO path para o executavel do agregador*/
 #define AGR_EXEC_PATH "../ag_src/ag"
+/**MACRO nome do comando do agregador*/
 #define AGREGADOR "ag"
 
+//-------------------------------------------------------------------------------
+
+/** Variaveis globais a este programa, erros retornados pelo servidor e reportados no terminal dos clientes */
+
+/*Erro comando invalido*/
 static char invalidCMD[44] = "[./cv] client inserted an invalid command.\n";
+/*Erro codigo que nao existe*/
 static char overflowCode[51] = "[./cv] client requested code that does not exist.\n";
+/*Erro nao conseguiu fazer update ao stock*/
 static char errorUpdateStock[51] = "[./cv] client requested stock update to negative.\n";
+
+//-------------------------------------------------------------------------------
+
+/** @brief Main: Processa um pedido de um cliente dado o seu PID explorando pipes individuais.
+ *				 No fim remove o pipe do cliente.
+ *  @param.
+ *  @return 0 caso os pedidos tiverem sido processados corretamente.
+*/
 
 int main(int argc, char* argv[]) {
 

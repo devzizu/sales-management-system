@@ -1,3 +1,13 @@
+//-------------------------------------------------------------------------------
+
+/** @file sv.c
+*
+*	@brief Ficheiro que implementa o servidor de vendas.
+*
+*/
+
+//-------------------------------------------------------------------------------
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -9,7 +19,13 @@
 
 #include "../GLOBAL_SOURCE/global.h"
 
-//----------------------------------------------------
+//-------------------------------------------------------------------------------
+
+/** @brief Apresenta o stock e preco enviando a resposta por um pipe para o cliente com id clienteID
+ * 
+ *  @param codigoProduto codigo do produto.
+ *  @param clientID PID do cliente.
+*/
 
 void printStockPreco(int codigoProduto, int clientID) {
 	
@@ -96,7 +112,15 @@ void printStockPreco(int codigoProduto, int clientID) {
 	close(fd_artigo);
 }
 
-//----------------------------------------------------
+//*************************************************************************************
+
+/** @brief Função que atualiza a quantidade de stock caso ela se mantenha negativa
+ *
+ *  @param codigo codigo do produto.
+ *  @param novaQuantidade quantidade.
+ *  @param clientID PID do cliente.
+ *  @return -1 caso nao seja possivel realizar esse update de stock.
+*/
 
 int updateQuantidadeStock (int codigo, int novaQuantidade, int clientID) {
 
@@ -154,10 +178,17 @@ int updateQuantidadeStock (int codigo, int novaQuantidade, int clientID) {
 	return 0;
 }
 
-//----------------------------------------------------
+//*************************************************************************************
 
-void updateVenda (int codigo, int quantidade) 
-{
+/** @brief Função que adiciona uma venda ao ficheiro vendas.
+ *		   (Nota: Não necessita de enviar respostas ao servidor)
+ *  @param codigo codigo do produto.
+ *  @param quantidade quantidade.
+ *  @return -1 caso nao seja possivel realizar esse update de stock.
+*/
+
+void updateVenda (int codigo, int quantidade) {
+
 	//Obter o preço de uma venda---------------------
 
 	//Abrir o ficheiro de artigos
@@ -192,8 +223,14 @@ void updateVenda (int codigo, int quantidade)
 	close(fd_vendas);
 }
 
-int main() 
-{
+/** @brief Main: corre até receber um kill de processo.
+ *
+ *  @param.
+ *  @return 0 quando o servidor é desligado.
+*/
+
+int main() {
+
 	//Numero de chars lidos pelo read
 	int n = 1, i = 0;
 

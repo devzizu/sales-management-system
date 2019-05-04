@@ -1,3 +1,13 @@
+//-------------------------------------------------------------------------------
+
+/** @file compactador.c
+*
+*	@brief Ficheiro que contém a implementação do compactador do ficheiro strings.
+*
+*/
+
+//-------------------------------------------------------------------------------
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -11,6 +21,13 @@
 
 #include "../GLOBAL_SOURCE/global.h"
 #include "../GLOBAL_SOURCE/artigos.h"
+
+//-------------------------------------------------------------------------------
+
+/** @brief Função que calcula a percentagem de nomes obsuletos no ficheiro strings.
+ *
+ *  @return A percentagem de lixo.
+*/
 
 double lixo_strings () {
 
@@ -56,6 +73,16 @@ double lixo_strings () {
 	return total_trash;
 }
 
+//*************************************************************************************
+
+/** @brief Função que obtem a linha de um ficheiro num buffer.
+ *		   Nota: função para um ficheiro de tamanho variavel (como por exemplo o strings.txt)
+ *
+ *  @param path ficheiro.
+ *  @path line_to_search a linha.
+ *  @return pointer para o buffer da linha.
+*/
+
 char* get_line_from_file (char *path, int line_to_search) {
 
 	int fd_file = open(path, O_RDONLY, 0666);
@@ -89,6 +116,15 @@ char* get_line_from_file (char *path, int line_to_search) {
 	return res;
 }
 
+//*************************************************************************************
+
+/** @brief Função que obtem o stock de uma linha do ficheiro stocks.
+ *
+ *  @param path ficheiro.
+ *  @param path line_to_search a linha.
+ *  @return pointer para o buffer da linha.
+*/
+
 int get_stock_from_file (int referencia) {
 
 	int fd_stock, pos_leitura, n;
@@ -107,9 +143,19 @@ int get_stock_from_file (int referencia) {
 	return atoi(oldStock);
 }
 
+//*************************************************************************************
+
+/** @brief Main: efetua a compactação do ficheiro trazendo para a memória as partes essencias do ficheiro (não obsuletas).
+ *
+ *  @param path ficheiro.
+ *  @return 0 se tudo correr bem.
+*/
+
 int main(int argc, char const *argv[]) {
 	
-	printf("Lixo: %.3lf per cent\n", lixo_strings());
+	//Só executa o agregador se o ficheiro tiver mais de 20% de lixo
+	if (lixo_strings() < 20.0) 
+		return 0;
 
 	int fd_artigos = open(PATH_ARTIGOS, O_RDONLY, 0666);
 
@@ -186,9 +232,6 @@ int main(int argc, char const *argv[]) {
 
 		inserirArtigo(nome_art, getPreco(auxValues -> data), getStock(auxValues -> data));
 	}
-
-	printf("Reducing the ammount of trash in file...\n");
-	printf("Lixo: %.3lf per cent\n", lixo_strings());
 
 	return 0;
 }

@@ -1,17 +1,37 @@
+//-------------------------------------------------------------------------------
+
+/** @file ag.c
+*
+*	@brief Ficheiro que contém a implementação do agregador de vendas.
+*
+*/
+
+//-------------------------------------------------------------------------------
 
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+
 #include <stdlib.h>
 #include <string.h>
-
 #include <stdio.h>
+
 #include <glib.h>
 #include <gmodule.h>
+
 #include <time.h>
 
 #include "../GLOBAL_SOURCE/global.h"
+
+//-------------------------------------------------------------------------------
+
+/** @brief Função que agrega a lista de vendas com a mesma referencia.
+ *         Acumula os montantes de todas as vendas e a quantidade vendida numa só venda.
+ *
+ *  @param Lista para agregação.
+ *  @return A lista agregada.
+*/
 
 GList* joinList (GList *arg) {
 
@@ -50,7 +70,15 @@ GList* joinList (GList *arg) {
 	return agregada;
 }
 
-GHashTable* agregarHashTable (GHashTable *vendasTable) {
+//*************************************************************************************
+
+/** @brief Função que efetua a agregação de toda a hashtable de Vendas (referenciadas por código)
+ *
+ *  @param Hashtable para agregação.
+ *  @return A hashtable agregada.
+*/
+
+GHashTable* agregarList (GHashTable *vendasTable) {
 
 	//Criar nova hashtable
 	GHashTable* new = g_hash_table_new(g_str_hash, g_str_equal);
@@ -82,7 +110,15 @@ GHashTable* agregarHashTable (GHashTable *vendasTable) {
 	return new;
 }
 
-//Retorna 0 se tudo correr bem
+//*************************************************************************************
+
+/** @brief Função que escreve a hashtable no ficheiro final (identificado pela hora de agregação)
+ *
+ *  @param path nome do ficheiro.
+ *  @param arg Hashtable.
+ *  @return 0 se tudo correr bem.
+*/
+
 int hashTable_to_ficheiro (char *path, GHashTable *arg) {
 
 	//Sucesso
@@ -113,6 +149,13 @@ int hashTable_to_ficheiro (char *path, GHashTable *arg) {
 
 	return r;
 }
+
+//*************************************************************************************
+
+/** @brief Main: Utiliza hashtables e listas para gerar o ficheiro de vendas agregado.
+ *
+ *  @return 0 se tudo correr bem.
+*/
 
 int main () {
 
@@ -166,7 +209,7 @@ int main () {
 
 	//Agregar a hashtable
 	GHashTable *agregada = NULL;
-	agregada = agregarHashTable(vendasTable);
+	agregada = agregarList(vendasTable);
 
 	//--------------------------------------------------------------
 
