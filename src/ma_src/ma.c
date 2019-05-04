@@ -46,8 +46,8 @@ void atualizaNome (int ref_antiga, char *novoNome) {
 	char precoAntigo[MAX_LINE], tmp[MAX_LINE];
 	sscanf(buffer, "%s %s", tmp, precoAntigo);
 
-	sprintf(buffer, "%08d %s\n", newIndex
-							   , precoAntigo);	
+	sprintf(buffer, "%010d %s\n", newIndex
+							    , precoAntigo);	
 
 	offset = lseek(fd_artigo, -LINE_ARTIGOS, SEEK_CUR);
 
@@ -59,7 +59,7 @@ void atualizaNome (int ref_antiga, char *novoNome) {
 
 }
 
-void atualizaPreco (int referencia, double novoPreco) {
+void atualizaPreco (int referencia, int novoPreco) {
 
 	int fd_artigo = open(PATH_ARTIGOS, O_RDWR, 0666);
 
@@ -70,7 +70,7 @@ void atualizaPreco (int referencia, double novoPreco) {
 	char buffer[MAX_LINE];
 
 	int n;
-	n = readln(fd_artigo, buffer, MAX_LINE);
+	n = read(fd_artigo, buffer, LINE_ARTIGOS);
 
 	//Sacar o preco que estava na linha que quero alterar
 	//Fazendo sscanf do buffer
@@ -79,8 +79,8 @@ void atualizaPreco (int referencia, double novoPreco) {
 
 	//Guardar tudo num buffer de escrita final
 	char bufferEscrita[MAX_LINE];
-	sprintf(bufferEscrita, "%s %012.2lf\n", tmp
-        								  , novoPreco);	
+	sprintf(bufferEscrita, "%s %010d\n", tmp
+        							   , novoPreco);	
 
 	offset = lseek(fd_artigo, -LINE_ARTIGOS, SEEK_CUR);
 
@@ -94,23 +94,23 @@ void atualizaPreco (int referencia, double novoPreco) {
 
 int main () {
 
+	//---------------------------------------------------------
+
+	//Ficheiro onde se reportam erros de execução do programa
 	int errorsLog = open (PATH_ERRORLOG, O_WRONLY|O_APPEND, 0666);
 
 	//---------------------------------------------------------
 
-	//Return value do readline
+	//Return value do readln
 	int n = 1;
-	//Buffer onde fica armazenado o comando
+
+	//Buffer onde fica armazenado o comando introduzido pelo user
 	char buffer[MAX_LINE];
 	//Array de Strings que guarda os campos do comando
-	char **campos;
+	char** campos;
 
-	//Numeros lidos apos checking
-	double verified_float;
-	int verified_int;
-
-	//Variavel que guarda a ultima linha adicionada no Strings.txt
-	int *ultimaLinha = (int*) malloc(sizeof(int));
+	//Numeros lidos apos parse de erros
+	int verified_int, verified_code;
 
 	//---------------------------------------------------------
 
@@ -124,17 +124,17 @@ int main () {
 			//Separar o comando lido num array de strings
 			campos = tokenizeComando(buffer);
 
-			//Função a executar mediante o comando
+			//Controlo da função a executar mediante o comando
 			switch(campos[0][0]) {
 
 				//Inserir novo artigo:> i <nome> <preco>
 				case 'i': 
 
 						//Caso corra bem esta função retorna > 0 (o número)
-						verified_float = is_number_float(campos[2]);
+						verified_int = is_number_int(campos[2]);
 
-						if (verified_float >= 0)
-							inserirArtigo(campos[1], verified_float);
+						if (verified_int >= 0)
+							inserirArtigo(campos[1], verified_int, 0);
 						else
 							if (write(errorsLog, err_reading_num, strlen(err_reading_num)) != -1);
 						
@@ -153,11 +153,12 @@ int main () {
 
 				//Alterar o preco do artigo:> p <codigo> <novo preco>
 				case 'p':
-						verified_float = is_number_float(campos[2]);
-						verified_int   = is_number_int(campos[1]);
 
-						if (verified_int >= 0 && verified_float >= 0)
-							atualizaPreco(verified_int, verified_float);
+						verified_int  = is_number_int(campos[2]);
+						verified_code = is_number_int(campos[1]);
+
+						if (verified_int >= 0 && verified_code >= 0)
+							atualizaPreco(verified_code, verified_int);
 						else
 							if (write(errorsLog, err_reading_num, strlen(err_reading_num)) != -1);
 

@@ -21,7 +21,7 @@ global: GLOBAL_SOURCE/global.c GLOBAL_SOURCE/global.h
 	mv global.o $(OBJ)
 
 artigo: GLOBAL_SOURCE/artigos.c GLOBAL_SOURCE/artigos.h
-	$(CC) $(CFLAGS) -c GLOBAL_SOURCE/artigos.c
+	$(CC) $(CFLAGS) `pkg-config --cflags libxml-2.0` `pkg-config --cflags glib-2.0` -c GLOBAL_SOURCE/artigos.c
 	mkdir -p $(OBJ)
 	mv artigos.o $(OBJ)
 

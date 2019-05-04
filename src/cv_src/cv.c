@@ -22,6 +22,7 @@
 
 static char invalidCMD[44] = "[./cv] client inserted an invalid command.\n";
 static char overflowCode[51] = "[./cv] client requested code that does not exist.\n";
+static char errorUpdateStock[51] = "[./cv] client requested stock update to negative.\n";
 
 int main(int argc, char* argv[]) {
 
@@ -67,7 +68,7 @@ int main(int argc, char* argv[]) {
 	int fd_rdwr = open(pathCliente, O_RDWR);
 
 	int tipoDeResposta;
-	double precoLido;
+	int precoLido;
 	int successScanf;
 	
 	n = 1;
@@ -76,7 +77,8 @@ int main(int argc, char* argv[]) {
 
 	while (n > 0) {
 
-		n = readln(pedidosClientes, clientRequest, MAX_LINE);	
+		//n = readln(pedidosClientes, clientRequest, MAX_LINE);	
+		n = readln(0, clientRequest, MAX_LINE);	
 		
 		if (strlen(clientRequest) <= 0) break; 
 
@@ -109,9 +111,9 @@ int main(int argc, char* argv[]) {
 
 				if (codigoPedido > 0) {
 
-					sprintf(pedidoBuffer, "%07d %08d %08d", processID, 
-												      	 	codigoPedido,
-												      	 	0);
+					sprintf(pedidoBuffer, "%07d %010d %010d", processID, 
+												      	 	  codigoPedido,
+												      	 	  0);
 				} else {
 
 					if (write(errorLog, invalidCMD, strlen(invalidCMD)) != -1);
@@ -125,9 +127,9 @@ int main(int argc, char* argv[]) {
 
 				if (successScanf == 2) {
 
-					sprintf(pedidoBuffer, "%07d %08d %08d", processID, 
-						                             	 	codigo,
-						                              		quantidade);
+					sprintf(pedidoBuffer, "%07d %010d %010d", processID, 
+						                             	 	  codigo,
+						                              		  quantidade);
 				} else {
 
 					if (write(errorLog, invalidCMD, strlen(invalidCMD)) != -1);
@@ -147,7 +149,7 @@ int main(int argc, char* argv[]) {
 
 			if (read(fd_rdwr, serverAnswer, TAM_RESPOSTA) == -1);
 
-			sscanf(serverAnswer, "%d %d %d %d %lf", &tipoDeResposta,
+			sscanf(serverAnswer, "%d %d %d %d %d", &tipoDeResposta,
 													(int*) &clientAnswerID, 
 													&codigo,
 													&quantidade,
@@ -157,21 +159,29 @@ int main(int argc, char* argv[]) {
 
 				//Mostrar resultado de printStockPreco
 				case 0: 
-					sprintf(resposta, "Artigo: %d | Stock: %d | Preco: %lf\n", codigo,
-																				quantidade,
-																				precoLido);
+					sprintf(resposta, "Artigo: %d | Stock: %d | Preco: %d\n", codigo,
+																			  quantidade,
+																		      precoLido);
 					if (write(1 , resposta, strlen(resposta))!=-1);
+				
 					break;
 
 				case 1:
 					sprintf(resposta, "Quantidade de stock: %d\n", quantidade);
 					
 					if (write(1 , resposta, strlen(resposta))!=-1);
+				
 					break;
 
 				case 3:
 
 					if (write(errorLog, overflowCode, strlen(overflowCode)) != -1);
+
+					break;
+
+				case 4:
+
+					if (write(errorLog, errorUpdateStock, strlen(errorUpdateStock)) != -1);
 
 					break;
 

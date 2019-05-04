@@ -24,23 +24,23 @@ GList* joinList (GList *arg) {
 		GList *aux = NULL;
 
 		int cod, quant; 
-		double mont;
+		int mont;
 		
 		char bufferEscrita[MAX_LINE];
 
 		int finalQuant = 0; 
-		double finalMont = 0;
+		int finalMont = 0;
 
 		for (aux = arg; aux != NULL; aux = aux -> next) {
 
-			sscanf(aux -> data, "%d %d %lf", &cod, &quant, &mont);
+			sscanf(aux -> data, "%d %d %d", &cod, &quant, &mont);
 
 			finalQuant += quant;
-			finalMont  += mont;
-
 		}
 
-		sprintf(bufferEscrita, "%d %d %.2lf\n", cod, finalQuant, finalMont);
+		finalMont = finalQuant * mont; 
+
+		sprintf(bufferEscrita, "%d %d %d\n", cod, finalQuant, finalMont);
 	
 		agregada = g_list_prepend(agregada, strdup(bufferEscrita));
 
@@ -64,9 +64,6 @@ GHashTable* agregarHashTable (GHashTable *vendasTable) {
 	//Apontadores para percorrer as listas keys e values
 	GList *lKey = NULL, *lVal = NULL;
 
-	//So para garantir que res é sempre false, ou seja, nao ha repetidos
-	gboolean res;
-
 	//Percorrer as listas
  	for (lKey = keys, lVal = vals; 
  		 lKey != NULL && lVal != NULL; 
@@ -76,33 +73,13 @@ GHashTable* agregarHashTable (GHashTable *vendasTable) {
 
  		nova = joinList(lVal -> data);
 
-		res = g_hash_table_insert(new, 
-					             strdup(lKey -> data), 
-					             nova);
+		g_hash_table_insert(new, 
+					        strdup(lKey -> data), 
+					        nova);
 
 	}
 
 	return new;
-}
-
-void hashTable_to_stdout (GHashTable *arg) {
-
-	//Lista de keys e values da hashtable
-	GList *vals = NULL;
-
-	vals = g_hash_table_get_values(arg);
-
-	//Apontador para percorrer as listas de values
-	GList *lVal = NULL, *l = NULL;
-
-	for (lVal = vals; lVal != NULL; lVal = lVal -> next) {
-		
-		for (l = lVal -> data; l != NULL; l = l -> next) {
-
-			if (write(1, l -> data, strlen(l -> data)) == -1);
-
-		}
-	}
 }
 
 //Retorna 0 se tudo correr bem
@@ -155,10 +132,8 @@ int main () {
  	char key[MAX_LINE];
  	char val[MAX_LINE];
  	char buffer[MAX_LINE];
- 	
- 	gboolean res;
-
- 	//Ler a primeira linha
+ 
+  	//Ler a primeira linha
 	n = readln(fd_vendasTable, buffer, MAX_LINE);
  	
  	//Ler o resto das linhas
@@ -179,7 +154,7 @@ int main () {
 		listaNova = g_list_prepend(listaNova, strdup(buffer));
 
 		//Inserir o elemento na hashtable
-		res = g_hash_table_insert(vendasTable, strdup(key), listaNova);
+		g_hash_table_insert(vendasTable, strdup(key), listaNova);
 
  		n = readln(fd_vendasTable, buffer, MAX_LINE);
  	
@@ -215,6 +190,8 @@ int main () {
 	printf("path=%s\n", datePath);
 
 	hashTable_to_ficheiro(datePath, agregada);
+
+	cat_file(datePath);
 
 	return 0;
 }

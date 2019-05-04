@@ -11,9 +11,14 @@
 #define PATH_TMP_STOCK "FILES/tmpStock.txt"
 
 #define MAX_LINE 150
+
+#define TAM_PEDIDO 29
+#define TAM_RESPOSTA 42
+
 #define LINE_ARTIGOS 22
-#define TAM_PEDIDO 25
-#define TAM_RESPOSTA 43
+#define LINE_STOCK 11
+
+#define BASE_PATH "../PipeVendas/pipePrintCliente"
 
 double trash_ammount_in_file (char *path);
 
@@ -21,7 +26,7 @@ double is_number_float (char* string);
 
 int is_number_int (char* string);
 
-int inserirArtigo (char* nome, double preco);
+int inserirArtigo (char* nome, int preco, int stock);
 
 int linhasFicheiro (char *path);
 
@@ -44,5 +49,7 @@ char** tokenizePedidodServidor (char *pedido);
 int anySpaceInString (char *string);
 
 size_t readNbytesOnce (int fd, char* buf, size_t nr_bytes);
+
+int cat_file (char *file_to_cat);
 
 #endif

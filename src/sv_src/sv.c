@@ -9,43 +9,32 @@
 
 #include "../GLOBAL_SOURCE/global.h"
 
-#define LINE_STOCK 9
-
-#define TAM_PEDIDO 25
-
-#define TAM_RESPOSTA 43
-
-#define BASE_PATH "../PipeVendas/pipePrintCliente"
-
 //----------------------------------------------------
 
 void printStockPreco(int codigoProduto, int clientID) {
-
-	//----------------------------------------------------
-	//         MOSTRAR O STOCK
-	//----------------------------------------------------
 	
-	//Abrir o ficheiro de Stocks
-	int fd_stock = open(PATH_STOCK, O_RDONLY, 0666);
-
 	//----------------------------------------------------
+
+	//Guarda a posicao donde se le no ficheiro
+	int pos_leitura;
+	//debug purpose
+	off_t offset;
 
 	//Caracteres lidos pelo readln
 	int n = 0, codigoAtual = 1;
 	//Ler para o buffer
 	char buffer[MAX_LINE];
 
-	do 
-	{
-		n = readln(fd_stock, buffer, MAX_LINE);
+	//----------------------------------------------------
 
-		codigoAtual++;
+	//Abrir ficheiro de stocks
+	int fd_stock = open(PATH_STOCK, O_RDONLY, 0666);
 
-	} while(codigoAtual <= codigoProduto && n > 0);
+	//Ler o stock dado o codigo de produto
 
-	//Caso nao exista o codigo
-	if (codigoAtual == codigoProduto) 
-		return;
+	pos_leitura = LINE_STOCK * (codigoProduto - 1);
+	offset = lseek(fd_stock, pos_leitura, SEEK_SET);
+	n = read(fd_stock, buffer, LINE_STOCK);
 
 	int quantidadeStock = atoi(buffer);
 
@@ -53,30 +42,30 @@ void printStockPreco(int codigoProduto, int clientID) {
 	close(fd_stock);
 
 	//----------------------------------------------------
-	//         MOSTRAR O PRECO
-	//----------------------------------------------------
 
 	//Abrir o ficheiro de artigos
 	int fd_artigo = open(PATH_ARTIGOS, O_RDONLY, 0666);
+
+	pos_leitura = LINE_ARTIGOS * (codigoProduto - 1);
+	offset = lseek(fd_artigo, pos_leitura, SEEK_SET);
+	n = read(fd_artigo, buffer, LINE_ARTIGOS);
+
 	//----------------------------------------------------
 
-	int pos_leitura = LINE_ARTIGOS * (codigoProduto - 1);
-
-	off_t offset = lseek(fd_artigo, pos_leitura, SEEK_SET);
-
-	n = readln(fd_artigo, buffer, LINE_ARTIGOS);
-
+	//Path que define o pipe
 	char pathCliente[200];
 	sprintf(pathCliente, "%s%d", BASE_PATH, (int) clientID);
 
+	//----------------------------------------------------
+
 	//Caso o codigo exceda o tamanho do ficheiro
-	if (buffer == NULL || strlen(buffer) == 0) {
+	if (n == 0) {
 
 		char error_overflow[MAX_LINE];
 
 		int fd_pipe_escrita = open(pathCliente, O_WRONLY);
 	
-		sprintf(error_overflow, "3 %07d %08d %08d %012.2lf", 0, 0, 0, 0.0);
+		sprintf(error_overflow, "3 %07d %010d %010d %010d", 0, 0, 0, 0);
 
 		if(write(fd_pipe_escrita, error_overflow, TAM_RESPOSTA)!=-1);
 
@@ -87,13 +76,13 @@ void printStockPreco(int codigoProduto, int clientID) {
 	
 	char **campos = tokenizeArtigo(campos, buffer);
 
-	double precoLido = atof(campos[1]);
+	int precoLido = atoi(campos[1]);
 
 	char bufferEscrita[MAX_LINE];
-	sprintf(bufferEscrita, "0 %07d %08d %08d %012.2lf", clientID, 
-														codigoProduto, 
-														quantidadeStock, 
-														precoLido);
+	sprintf(bufferEscrita, "0 %07d %010d %010d %010d", clientID, 
+													   codigoProduto, 
+													   quantidadeStock, 
+													   precoLido);
 	
 
 	int fd_pipe_escrita = open(pathCliente, O_WRONLY);
@@ -102,8 +91,6 @@ void printStockPreco(int codigoProduto, int clientID) {
 		bufferEscrita, TAM_RESPOSTA)!=-1);
 
 	close(fd_pipe_escrita);
-
-
 
 	//Já nao é necessario o ficheiro artigos
 	close(fd_artigo);
@@ -111,7 +98,10 @@ void printStockPreco(int codigoProduto, int clientID) {
 
 //----------------------------------------------------
 
-void updateQuantidadeStock (int codigo, int novaQuantidade, int clientID) {
+int updateQuantidadeStock (int codigo, int novaQuantidade, int clientID) {
+
+	char pathCliente[200];
+	sprintf(pathCliente, "%s%d", BASE_PATH, (int) clientID);
 
 	int fd_stock = open(PATH_STOCK, O_RDWR, 0666);
 
@@ -119,28 +109,40 @@ void updateQuantidadeStock (int codigo, int novaQuantidade, int clientID) {
 	off_t offset = lseek(fd_stock, pos_leitura, SEEK_SET);
 
 	char stockAntigo[MAX_LINE];
-	int n = readln(fd_stock, stockAntigo, MAX_LINE);
+	int n = read(fd_stock, stockAntigo, LINE_STOCK);
+
+	int stockAnt = atoi(stockAntigo);
+
+	int finalQuantidade = stockAnt + novaQuantidade;
+	
+	if (finalQuantidade < 0) {
+
+		char error_overflow[MAX_LINE];
+
+		int fd_pipe_escrita = open(pathCliente, O_WRONLY);
+	
+		sprintf(error_overflow, "4 %07d %010d %010d %010d", 0, 0, 0, 0);
+
+		if(write(fd_pipe_escrita, error_overflow, TAM_RESPOSTA)!=-1);
+
+		close(fd_pipe_escrita);
+
+		return -1; //Indicação da não possibilidade de venda
+	}
+
+	char newStock[12];
+	sprintf(newStock, "%010d\n", finalQuantidade);	
 
 	offset = lseek(fd_stock, pos_leitura, SEEK_SET);
-
-	int finalQuantidade = atoi(stockAntigo) + novaQuantidade;
-	
-	char newStock[10];
-
-	sprintf(newStock, "%08d\n", finalQuantidade);	
-
-	if (write(fd_stock, newStock, 9) != -1);
+	if (write(fd_stock, newStock, LINE_STOCK) != -1);
 
 	close(fd_stock);
 
 	char bufferEscrita[MAX_LINE];
-	sprintf(bufferEscrita, "1 %07d %08d %08d %012.2lf", clientID, 
-														0, 
-														finalQuantidade, 
-														0.0);
-
-	char pathCliente[200];
-	sprintf(pathCliente, "%s%d", BASE_PATH, (int) clientID);
+	sprintf(bufferEscrita, "1 %07d %010d %010d %010d", clientID, 
+													   0, 
+													   finalQuantidade, 
+													   0);
 
 	int fd_pipe_escrita = open(pathCliente, O_WRONLY);
 	
@@ -148,6 +150,8 @@ void updateQuantidadeStock (int codigo, int novaQuantidade, int clientID) {
 		bufferEscrita, TAM_RESPOSTA)!=-1);
 
 	close(fd_pipe_escrita);
+
+	return 0;
 }
 
 //----------------------------------------------------
@@ -164,20 +168,16 @@ void updateVenda (int codigo, int quantidade)
 	int n = 0;
 	char buffer[MAX_LINE];
 
-	do 
-	{
-		n = readln(fd_artigo, buffer, MAX_LINE);		
-
-		codigoAtual++;
-
-	} while(codigoAtual < codigo && n > 0);
+	int pos_leitura = LINE_ARTIGOS * (codigo - 1);
+	off_t offset = lseek(fd_artigo, pos_leitura, SEEK_SET);
+	n = read(fd_artigo, buffer, LINE_ARTIGOS);
 
 	//No buffer tenho a linha certa
 	//Para guardar a divisao do buffer
 	char **campos = tokenizeArtigo(campos, buffer);
 
 	//Preco do artigo para calcular o montante
-	double precoLido = atof(campos[1]);
+	int precoLido = atoi(campos[1]);
 
 	//Falta apenas acrescentar ao ficheiro de vendas o final
 	int fd_vendas = open(PATH_VENDAS, O_APPEND | O_WRONLY, 0666);
@@ -185,7 +185,7 @@ void updateVenda (int codigo, int quantidade)
 	//Juntar a venda toda num buffer
 
 	char bufferEscrita[MAX_LINE];
-	sprintf(bufferEscrita, "%d %d %.2lf\n", codigo, quantidade, quantidade*precoLido);	
+	sprintf(bufferEscrita, "%d %d %d\n", codigo, quantidade, quantidade*precoLido);	
 
 	if(write(fd_vendas, bufferEscrita, strlen(bufferEscrita)) != -1);
 
@@ -225,8 +225,12 @@ int main()
 				updateQuantidadeStock(codigo, quantidade, atoi(campos[0]));
 			else	
 			{	
-				updateQuantidadeStock(codigo, quantidade, atoi(campos[0]));
-				updateVenda(codigo, abs(quantidade));
+				if (updateQuantidadeStock(codigo, 
+										  quantidade, 
+										  atoi(campos[0])) != -1) {
+
+					updateVenda(codigo, abs(quantidade));
+				}
 			}
 		} 
 		else {

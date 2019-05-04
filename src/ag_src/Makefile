@@ -1,6 +1,6 @@
 OS := $(shell uname)
 ifeq ($(OS),Linux)
-    CFLAGS= `pkg-config --cflags libxml-2.0` `pkg-config --cflags glib-2.0` -g -O2
+    CFLAGS= `pkg-config --cflags libxml-2.0` `pkg-config --cflags glib-2.0` -Wall -g -O2
 else
     CFLAGS= -g -pedantic -std=c11 -O2
 endif

@@ -1,11 +1,14 @@
-#include <stdio.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/wait.h>
+
 #include <fcntl.h>
 #include <unistd.h>
+
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <stdio.h>
 
 #include "global.h"
 
@@ -54,7 +57,7 @@ double trash_ammount_in_file (char *path) {
 }
 
 //Retorna a ultima linha onde foi inserido
-int inserirArtigo (char* nome, double preco) {
+int inserirArtigo (char* nome, int preco, int stock) {
 
 	//Posicao onde vai ser inserido no ficheiro de strings
 	int index = linhasFicheiro(PATH_STRINGS);
@@ -76,7 +79,7 @@ int inserirArtigo (char* nome, double preco) {
 		//Guardar no buffer o novo artigo e a sua posição
 		//o index representa o offset desde o inicio do ficheiro ate ao inicio da string do produto
 		//A segunda parte é o preço do artigo
-		sprintf(buffer, "%08d %012.2lf\n", index, preco);
+		sprintf(buffer, "%010d %010d\n", index, preco);
 		if (write(fd_artigo, buffer, LINE_ARTIGOS) != -1);
 
 		char nameBuffer[MAX_LINE];
@@ -88,6 +91,20 @@ int inserirArtigo (char* nome, double preco) {
 	//Fechar os fd's dos artigos
 	close(fd_artigo);
 	close(fd_string);
+
+	//------------------------------------------------
+
+	int fd_stock = open (PATH_STOCK, O_WRONLY|O_APPEND, 0666);
+
+	char stockEmpty[MAX_LINE];
+
+	sprintf(stockEmpty, "%010d\n", stock);
+
+	if (write(fd_stock, stockEmpty, strlen(stockEmpty)) != -1);	
+
+	close(fd_stock);
+
+	//------------------------------------------------
 
 	//Linha onde foi inserido
 	return index;
@@ -236,3 +253,22 @@ size_t readNbytesOnce (int fd, char* buf, size_t nr_bytes) {
 
 	return n;
 }
+
+int cat_file (char *file_to_cat) {
+
+	char *cat[] = {"cat", file_to_cat, NULL};
+
+	pid_t pid = fork();
+
+	if (pid == 0) {
+
+		execvp(cat[0], cat);
+
+		_exit(0);
+
+	} else if (pid > 0) {
+
+		wait(NULL);
+	}
+}
+

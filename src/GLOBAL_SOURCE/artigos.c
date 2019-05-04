@@ -3,6 +3,8 @@
 #include <string.h>
 #include <stdio.h>
 
+#include <glib.h>
+
 #include "artigos.h"
 
 struct artigo {
@@ -11,6 +13,9 @@ struct artigo {
 
 	char* nome;
 	double preco;
+	int stock;
+
+	int pos;
 
 };
 
@@ -24,21 +29,17 @@ ARTIGO initArtigo (ARTIGO novo) {
 ARTIGO insertArtigo (ARTIGO novo, 
 					 char *new_key, 
 					 char* new_nome, 
-					 double new_price) {
+					 double new_price,
+					 int new_pos,
+					 int new_stock) {
 
 	novo -> key   = strdup(new_key);
 	novo -> nome  = strdup(new_nome);
 	novo -> preco = new_price;  
+	novo -> pos   = new_pos;
+	novo -> stock = new_stock;
 
 	return novo;
-}
-
-void write_artigo_to_stdout (ARTIGO arg) {
-
-	printf("\nkey   : %s\n", arg -> key);
-	printf("nome  : %s", arg -> nome);
-	printf("preco : %.2lf\n", arg -> preco);
-
 }
 
 char* getNome (ARTIGO novo) {
@@ -49,4 +50,33 @@ char* getNome (ARTIGO novo) {
 double getPreco (ARTIGO novo) {
 
 	return novo -> preco;
+}
+
+char* getKey (ARTIGO novo) {
+
+	return novo -> key;
+}
+
+int getPos (ARTIGO novo) {
+
+	return novo -> pos;
+}
+
+int getStock (ARTIGO novo) {
+
+	return novo -> stock;
+}
+
+int artigo_compare (gconstpointer a, gconstpointer b) {
+
+	int r;
+
+	ARTIGO a_new = (ARTIGO) a; 
+	ARTIGO b_new = (ARTIGO) b;
+
+	if (getPos(a_new) == getPos(b_new)) r = 0;
+	else if (getPos(a_new) > getPos(b_new)) r = 1;
+	else r = -1;
+
+	return r;
 }
