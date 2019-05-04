@@ -226,5 +226,5 @@ int main(int argc, char* argv[]) {
 	close(fd_rdwr);
 	close(errorLog);
 
-	if (remove(pathCliente) != -1);
+	//if (remove(pathCliente) != -1);
 }

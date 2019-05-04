@@ -240,7 +240,7 @@ int main() {
 	//Para guardar o comando lido
 	char buffer[MAX_LINE];
 	
-	int fd_pedidos = open("../PipeVendas/pipeClienteVendas", O_RDONLY);
+	int fd_pedidos = open("../PipeVendas/pipeClienteVendas", O_RDONLY, 0666);
 	
 	while(n > 0) {
 
