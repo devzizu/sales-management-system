@@ -137,6 +137,21 @@ int updateQuantidadeStock (int codigo, int novaQuantidade, int clientID, int fd_
 
 	int finalQuantidade = stockAnt + novaQuantidade;
 	
+	if (n == 0) {
+
+		char error_overflow[MAX_LINE];
+
+		int fd_pipe_escrita = open(pathCliente, O_WRONLY);
+	
+		sprintf(error_overflow, "3 %07d %010d %010d %010d", 0, 0, 0, 0);
+
+		if(write(fd_pipe_escrita, error_overflow, TAM_RESPOSTA)!=-1);
+
+		close(fd_pipe_escrita);
+
+		return -1;
+	}
+
 	if (finalQuantidade < 0) {
 
 		char error_overflow[MAX_LINE];

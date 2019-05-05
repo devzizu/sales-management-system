@@ -4,3 +4,5 @@
 [./ma] invalid command.
 [./ma] invalid command.
 [./ma] invalid command.
+[./cv] client requested code that does not exist.
+[./cv] client requested code that does not exist.
