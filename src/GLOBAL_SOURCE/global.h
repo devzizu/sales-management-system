@@ -17,7 +17,7 @@
 
 #define PATH_ARTIGOS "../FILES/ARTIGOS"
 #define PATH_STRINGS "../FILES/STRINGS"
-#define PATH_STOCK "../FILES/STOCK.txt"
+#define PATH_STOCK "../FILES/STOCK"
 #define PATH_VENDAS "../FILES/VENDAS"
 
 /*Ficheiro onde sao encaminhados os erros de execução dos programas*/

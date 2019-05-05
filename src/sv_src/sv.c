@@ -127,8 +127,6 @@ int updateQuantidadeStock (int codigo, int novaQuantidade, int clientID, int fd_
 	char pathCliente[200];
 	sprintf(pathCliente, "%s%d", BASE_PATH, (int) clientID);
 
-	printf("fd_stock = %d\n", fd_stock);
-
 	int pos_leitura = (codigo-1) * LINE_STOCK;
 	off_t offset = lseek(fd_stock, pos_leitura, SEEK_SET);
 
@@ -138,8 +136,6 @@ int updateQuantidadeStock (int codigo, int novaQuantidade, int clientID, int fd_
 	int stockAnt = atoi(stockAntigo);
 
 	int finalQuantidade = stockAnt + novaQuantidade;
-	
-	printf("pos = %d ant = %s n = %d len(ant) = %d finalQuant = %d\n", pos_leitura, stockAntigo, n, (int) strlen(stockAntigo), finalQuantidade);
 	
 	if (finalQuantidade < 0) {
 

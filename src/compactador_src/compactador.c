@@ -153,9 +153,20 @@ int get_stock_from_file (int referencia) {
 
 int main(int argc, char const *argv[]) {
 	
+	printf("\n=> A correr o compactador...\n");
+
+	double trash = lixo_strings();
+
 	//Só executa o agregador se o ficheiro tiver mais de 20% de lixo
-	if (lixo_strings() < 20.0) 
+
+	printf("\n:: Strings obsuletos: %.2lf por cento. \n\n", trash);
+
+	if (trash < 20.0) { 
+
+		printf("Não será necessário correr o compactador [ menor do que 20 por cento ]\n\n");
+
 		return 0;
+	}
 
 	int fd_artigos = open(PATH_ARTIGOS, O_RDONLY, 0666);
 
@@ -232,6 +243,8 @@ int main(int argc, char const *argv[]) {
 
 		inserirArtigo(nome_art, getPreco(auxValues -> data), getStock(auxValues -> data));
 	}
+
+	printf("\nCompactação feita...\n");
 
 	return 0;
 }
