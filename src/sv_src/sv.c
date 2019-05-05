@@ -122,12 +122,12 @@ void printStockPreco(int codigoProduto, int clientID) {
  *  @return -1 caso nao seja possivel realizar esse update de stock.
 */
 
-int updateQuantidadeStock (int codigo, int novaQuantidade, int clientID) {
+int updateQuantidadeStock (int codigo, int novaQuantidade, int clientID, int fd_stock) {
 
 	char pathCliente[200];
 	sprintf(pathCliente, "%s%d", BASE_PATH, (int) clientID);
 
-	int fd_stock = open(PATH_STOCK, O_RDWR, 0666);
+	printf("fd_stock = %d\n", fd_stock);
 
 	int pos_leitura = (codigo-1) * LINE_STOCK;
 	off_t offset = lseek(fd_stock, pos_leitura, SEEK_SET);
@@ -138,6 +138,8 @@ int updateQuantidadeStock (int codigo, int novaQuantidade, int clientID) {
 	int stockAnt = atoi(stockAntigo);
 
 	int finalQuantidade = stockAnt + novaQuantidade;
+	
+	printf("pos = %d ant = %s n = %d len(ant) = %d finalQuant = %d\n", pos_leitura, stockAntigo, n, (int) strlen(stockAntigo), finalQuantidade);
 	
 	if (finalQuantidade < 0) {
 
@@ -159,8 +161,6 @@ int updateQuantidadeStock (int codigo, int novaQuantidade, int clientID) {
 
 	offset = lseek(fd_stock, pos_leitura, SEEK_SET);
 	if (write(fd_stock, newStock, LINE_STOCK) != -1);
-
-	close(fd_stock);
 
 	char bufferEscrita[MAX_LINE];
 	sprintf(bufferEscrita, "1 %07d %010d %010d %010d", clientID, 
@@ -203,6 +203,8 @@ void updateVenda (int codigo, int quantidade) {
 	off_t offset = lseek(fd_artigo, pos_leitura, SEEK_SET);
 	n = read(fd_artigo, buffer, LINE_ARTIGOS);
 
+	close(fd_artigo);
+
 	//No buffer tenho a linha certa
 	//Para guardar a divisao do buffer
 	char **campos = tokenizeArtigo(campos, buffer);
@@ -231,6 +233,11 @@ void updateVenda (int codigo, int quantidade) {
 
 int main() {
 
+	int fd_stock = open(PATH_STOCK, O_RDWR, 0666);
+
+	//FIFO de envio dos pedidos do cliente ao servidor
+	mkfifo("../PipeVendas/pipeClienteVendas", 0600);	
+
 	//Numero de chars lidos pelo read
 	int n = 1, i = 0;
 
@@ -243,6 +250,8 @@ int main() {
 	int fd_pedidos = open("../PipeVendas/pipeClienteVendas", O_RDONLY, 0666);
 	
 	while(n > 0) {
+
+		lseek(fd_stock, 0, SEEK_SET);
 
 		n = read(fd_pedidos, buffer, TAM_PEDIDO);
 
@@ -259,12 +268,12 @@ int main() {
 			int codigo = atoi(campos[1]), quantidade = atoi(campos[2]);
 
 			if (quantidade > 0) 
-				updateQuantidadeStock(codigo, quantidade, atoi(campos[0]));
-			else	
-			{	
+				updateQuantidadeStock(codigo, quantidade, atoi(campos[0]), fd_stock);
+			else if (quantidade < 0) {
+				//printf("quantidade = %d\n", quantidade);
 				if (updateQuantidadeStock(codigo, 
 										  quantidade, 
-										  atoi(campos[0])) != -1) {
+										  atoi(campos[0]), fd_stock) != -1) {
 
 					updateVenda(codigo, abs(quantidade));
 				}
@@ -279,6 +288,8 @@ int main() {
 	
 	close(fd_pedidos);
 	
+	close(fd_stock);
+
 	main();
 
 	return 0;

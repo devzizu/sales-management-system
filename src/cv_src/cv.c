@@ -64,9 +64,6 @@ int main(int argc, char* argv[]) {
 	pid_t clientAnswerID;
 
 	//-------------------------------------------------
-
-	//FIFO de envio dos pedidos do cliente ao servidor
-	mkfifo("../PipeVendas/pipeClienteVendas", 0600);	
 	
 	char pathCliente[200];
 	sprintf(pathCliente, "%s%d", BASE_PATH, (int) processID);
