@@ -12,12 +12,14 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <signal.h>
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "../GLOBAL_SOURCE/global.h"
+#include "../GLOBAL_SOURCE/cache.h"
 
 //-------------------------------------------------------------------------------
 
@@ -198,30 +200,46 @@ int updateQuantidadeStock (int codigo, int novaQuantidade, int clientID, int fd_
  *  @return -1 caso nao seja possivel realizar esse update de stock.
 */
 
-void updateVenda (int codigo, int quantidade) {
+void updateVenda (int codigo, int quantidade, CACHE cache) {
 
-	//Obter o preço de uma venda---------------------
+	int pos = lookup_code_cache(cache, codigo);
 
-	//Abrir o ficheiro de artigos
-	int fd_artigo = open(PATH_ARTIGOS, O_RDONLY, 0666);
-
-	//Zerar o contador
-	int codigoAtual = 0;
-	int n = 0;
+	int n, pos_leitura, precoLido;
 	char buffer[MAX_LINE];
+	off_t offset;
+	char **campos;
 
-	int pos_leitura = LINE_ARTIGOS * (codigo - 1);
-	off_t offset = lseek(fd_artigo, pos_leitura, SEEK_SET);
-	n = read(fd_artigo, buffer, LINE_ARTIGOS);
+	if (pos == -1) {
+	
+		//Abrir o ficheiro de artigos
+		int fd_artigo = open(PATH_ARTIGOS, O_RDONLY, 0666);
 
-	close(fd_artigo);
+		//Zerar o contador
+		n = 0;
 
-	//No buffer tenho a linha certa
-	//Para guardar a divisao do buffer
-	char **campos = tokenizeArtigo(campos, buffer);
+		pos_leitura = LINE_ARTIGOS * (codigo - 1);
+		offset = lseek(fd_artigo, pos_leitura, SEEK_SET);
+		n = read(fd_artigo, buffer, LINE_ARTIGOS);
 
-	//Preco do artigo para calcular o montante
-	int precoLido = atoi(campos[1]);
+		close(fd_artigo);
+
+		//No buffer tenho a linha certa
+		//Para guardar a divisao do buffer
+		campos = tokenizeArtigo(campos, buffer);
+
+		//Preco do artigo para calcular o montante
+		precoLido = atoi(campos[1]);
+
+		CELULA nova = init_celula (nova, codigo, precoLido);
+
+		cache = add_cache(cache, nova, &pos);
+	
+	} else {
+		
+		printf("ta na cache\n");
+		
+		precoLido = getPreco(cache, pos);
+	}
 
 	//Falta apenas acrescentar ao ficheiro de vendas o final
 	int fd_vendas = open(PATH_VENDAS, O_APPEND | O_WRONLY, 0666);
@@ -236,6 +254,53 @@ void updateVenda (int codigo, int quantidade) {
 	close(fd_vendas);
 }
 
+void handle_sigint (int sig) {
+
+	//-----------------------------------------------------------------------------------------
+
+	printf("\n[LOG] Server shutting down...\n");
+
+	if (remove("../PipeVendas/pipeClienteVendas") != -1);
+
+	//-----------------------------------------------------------------------------------------
+
+	printf("\n[LOG] Removing any logged clients...\n");
+
+	//-----------------------------------------------------------------------------------------
+
+	int fd_clients_log = open ("../PipeVendas/clientes.log", O_RDONLY, 0666);
+
+	int bytes_linha = 44; //com \n
+
+	char clienteINFO[45];
+	int processID;
+
+	while (read(fd_clients_log, clienteINFO, 45) > 0) {
+
+		char *token = strtok(clienteINFO, " ");		
+		token = strtok(NULL, " ");
+		token = strtok(NULL, " ");
+
+		processID = atoi(token);
+
+		kill(processID, SIGKILL);
+
+	}
+
+	close(fd_clients_log);
+
+	fd_clients_log = open ("../PipeVendas/clientes.log", O_TRUNC, 0666);
+
+	close(fd_clients_log);
+	
+	//-----------------------------------------------------------------------------------------
+
+	printf("\n\n[LOG] Everything was cleaned, until next time!...\n\n");
+
+	_exit(0);	
+
+}
+
 /** @brief Main: corre até receber um kill de processo.
  *
  *  @param.
@@ -244,10 +309,18 @@ void updateVenda (int codigo, int quantidade) {
 
 int main() {
 
+	//---------------------------------------------------------------------------
+
+	CACHE cache_server = init_cache(10);
+	
+	//---------------------------------------------------------------------------
+
 	int fd_stock = open(PATH_STOCK, O_RDWR, 0666);
 
 	//FIFO de envio dos pedidos do cliente ao servidor
 	mkfifo("../PipeVendas/pipeClienteVendas", 0600);	
+
+	signal(SIGINT, handle_sigint);
 
 	//Numero de chars lidos pelo read
 	int n = 1, i = 0;
@@ -260,8 +333,10 @@ int main() {
 	
 	int fd_pedidos = open("../PipeVendas/pipeClienteVendas", O_RDONLY, 0666);
 	
-	while(n > 0) {
+	int pos;
 
+	while(n > 0) {
+	
 		lseek(fd_stock, 0, SEEK_SET);
 
 		n = read(fd_pedidos, buffer, TAM_PEDIDO);
@@ -270,37 +345,57 @@ int main() {
 
 		campos = tokenizePedidodServidor(buffer);
 
-		//Os comandos inseridos podem ser dois:
-		//1: <codigo> -> mostra o stock
-		//2: <codigo> <quantidade> -> atualiza o stock e mostra novo stock
-		//Se tiver um espaço então é o 2º comando
-		if(atoi(campos[2]) != 0) {
+		if (atoi(campos[0]) == 11111) {
 
-			int codigo = atoi(campos[1]), quantidade = atoi(campos[2]);
+			pos = lookup_code_cache(cache_server, atoi(campos[1]));
 
-			if (quantidade > 0) 
-				updateQuantidadeStock(codigo, quantidade, atoi(campos[0]), fd_stock);
-			else if (quantidade < 0) {
-				//printf("quantidade = %d\n", quantidade);
-				if (updateQuantidadeStock(codigo, 
-										  quantidade, 
-										  atoi(campos[0]), fd_stock) != -1) {
+			if (pos != -1) {
 
-					updateVenda(codigo, abs(quantidade));
-				}
+				printf("ja encontrei na cache, updating\n");
+
+				setPreco(cache_server, pos, atoi(campos[2]));
+
 			}
-		} 
-		else {
 
-			//Passo-lhe o codigo do produto em questao
-			printStockPreco(atoi(campos[1]), atoi(campos[0]));
+		} else {
+
+			//Os comandos inseridos podem ser dois:
+			//1: <codigo> -> mostra o stock
+			//2: <codigo> <quantidade> -> atualiza o stock e mostra novo stock
+			//Se tiver um espaço então é o 2º comando
+			if(atoi(campos[2]) != 0) {
+
+				int codigo = atoi(campos[1]), quantidade = atoi(campos[2]);
+
+				if (quantidade > 0) 
+					updateQuantidadeStock(codigo, quantidade, atoi(campos[0]), fd_stock);
+				else if (quantidade < 0) {
+					//printf("quantidade = %d\n", quantidade);
+					if (updateQuantidadeStock(codigo, 
+											  quantidade, 
+											  atoi(campos[0]), 
+											  fd_stock) != -1) {
+
+						updateVenda(codigo, abs(quantidade), cache_server);
+					}
+				}
+			} 
+			else {
+
+				//Passo-lhe o codigo do produto em questao
+				printStockPreco(atoi(campos[1]), atoi(campos[0]));
+			}
+
+
 		}
+
+		//print_cache(cache_server);
 	}
 	
 	close(fd_pedidos);
 	
 	close(fd_stock);
-
+	
 	main();
 
 	return 0;

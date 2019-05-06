@@ -25,6 +25,11 @@ artigo: GLOBAL_SOURCE/artigos.c GLOBAL_SOURCE/artigos.h
 	mkdir -p $(OBJ)
 	mv artigos.o $(OBJ)
 
+cache: GLOBAL_SOURCE/cache.c GLOBAL_SOURCE/cache.h
+	$(CC) $(CFLAGS) -c GLOBAL_SOURCE/cache.c
+	mkdir -p $(OBJ)
+	mv cache.o $(OBJ)
+
 ma:
 	cd $(MA) && mkdir -p obj/ && $(MAKE)
 	cd ..

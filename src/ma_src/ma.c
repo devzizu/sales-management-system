@@ -10,6 +10,7 @@
 #include <string.h>
 
 #include "../GLOBAL_SOURCE/global.h"
+#include "../GLOBAL_SOURCE/cache.h"
 
 /**MACRO path base do pipe servidor >> cliente*/
 #define BASE_PATH "../PipeVendas/pipePrintCliente"
@@ -95,6 +96,8 @@ void atualizaPreco (int referencia, int novoPreco) {
 	sprintf(bufferEscrita, "%s %010d\n", tmp
         							   , novoPreco);	
 
+	//------------------------------------------------------------------------
+
 	offset = lseek(fd_artigo, -LINE_ARTIGOS, SEEK_CUR);
 
 	//Escrever a linha nova no ficheiro novo de artigos
@@ -102,6 +105,26 @@ void atualizaPreco (int referencia, int novoPreco) {
     if(write(fd_artigo, bufferEscrita, LINE_ARTIGOS) != -1);
 
 	close(fd_artigo);
+
+	//------------------------------------------------------------------------
+
+	printf("updating preco\n");
+
+	int pipeEnvioServer = open("../PipeVendas/pipeClienteVendas", O_WRONLY, 0666);
+
+	if (pipeEnvioServer == -1) 
+		return;
+
+	char pedidoBuffer[MAX_LINE];
+	int id_ma = 11111;
+
+	sprintf(pedidoBuffer, "%07d %010d %010d", id_ma, 
+	                             	 	      referencia,
+	                            		      novoPreco);
+
+	if(write(pipeEnvioServer, pedidoBuffer, TAM_PEDIDO) != -1);
+
+	close(pipeEnvioServer);
 
 }
 

@@ -21,9 +21,6 @@
 #include <string.h>
 #include <time.h>
 
-#include <errno.h>
-#include <poll.h>
-
 #include "../GLOBAL_SOURCE/global.h"
 
 //-------------------------------------------------------------------------------
@@ -48,6 +45,15 @@ static char errorUpdateStock[51] = "[./cv] client requested stock update to nega
 
 //-------------------------------------------------------------------------------
 
+void handle_sigkill (int sig) {
+
+	printf("\n[SERV_SHUTDOWN] A terminar ligação com o servidor\n");
+
+	_exit(0);
+}
+
+//-------------------------------------------------------------------------------
+
 /** @brief Main: Processa um pedido de um cliente dado o seu PID explorando pipes individuais.
  *				 No fim remove o pipe do cliente.
  *  @param.
@@ -58,10 +64,24 @@ int main(int argc, char* argv[]) {
 
 	//-------------------------------------------------
 
+	signal(SIGKILL, handle_sigkill);
+
+	//-------------------------------------------------
+
 	//Process ID do cliente
 	pid_t processID = getpid();
 	//Identificador do cliente no servidor de vendas
 	pid_t clientAnswerID;
+
+	int fd_clients_log = open ("../PipeVendas/clientes.log", O_CREAT|O_WRONLY|O_APPEND, 0666);
+
+	char clienteID[MAX_LINE];
+
+	sprintf(clienteID, "=> Client %d just logged into the server.\n", processID);
+
+	if (write(fd_clients_log, clienteID, strlen(clienteID))!=-1);
+
+	close(fd_clients_log);
 
 	//-------------------------------------------------
 	
