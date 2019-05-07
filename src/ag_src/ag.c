@@ -165,8 +165,34 @@ int main () {
 	//inicializar a arvore de vendasTable
 	vendasTable = g_hash_table_new(g_str_hash, g_str_equal); 
 
+	//--------------------------------------------------------------
+
+	int fd_agregador_log = open("../PipeVendas/registos_agregador.log", O_RDONLY, 0666);
+
+	off_t place_to_seek;
+
+	char seek[MAX_LINE];
+
+	if (fd_agregador_log == -1) 
+		place_to_seek = 0;
+	else {
+
+		if (read(fd_agregador_log, seek, MAX_LINE) > 0) {
+			
+			place_to_seek = atoi(seek);
+		
+		} else place_to_seek = 0;
+
+	}
+
+	close(fd_agregador_log);
+
+	//--------------------------------------------------------------
+
 	//Abrir o ficheiro de vendasTable para leitura
- 	int fd_vendasTable = open(PATH_VENDAS, O_RDONLY, 0666);
+ 	int fd_vendasTable = open(PATH_VENDAS, O_RDWR, 0666);
+
+ 	lseek(fd_vendasTable, place_to_seek, SEEK_SET);
 
  	//Valor lido pelo readln
  	int n;
@@ -203,7 +229,22 @@ int main () {
  	
 	} while (n > 0);
 
+	int ultimaAgreg;
+
+	ultimaAgreg = lseek(fd_vendasTable, 0, SEEK_END);
+
 	close(fd_vendasTable);
+
+	//--------------------------------------------------------------
+
+	fd_agregador_log = open("../PipeVendas/registos_agregador.log", O_CREAT|O_WRONLY|O_TRUNC, 0666);
+
+	char buffer_ult_agreg[MAX_LINE];
+	sprintf(buffer_ult_agreg, "%d\n", ultimaAgreg);
+
+	if (write(fd_agregador_log, buffer_ult_agreg, strlen(buffer_ult_agreg)) != -1);
+
+	close(fd_agregador_log);
 
 	//--------------------------------------------------------------
 
