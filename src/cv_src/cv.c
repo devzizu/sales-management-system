@@ -45,9 +45,9 @@ static char errorUpdateStock[51] = "[./cv] client requested stock update to nega
 
 //-------------------------------------------------------------------------------
 
-void handle_sigkill (int sig) {
+void handle_sigint (int sig) {
 
-	printf("\n[SERV_SHUTDOWN] A terminar ligação com o servidor\n");
+	printf("\nA terminar ligação com o servidor\n\n");
 
 	_exit(0);
 }
@@ -64,7 +64,7 @@ int main(int argc, char* argv[]) {
 
 	//-------------------------------------------------
 
-	signal(SIGKILL, handle_sigkill);
+	signal(SIGINT, handle_sigint);
 
 	//-------------------------------------------------
 

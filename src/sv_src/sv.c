@@ -283,7 +283,7 @@ void handle_sigint (int sig) {
 
 		processID = atoi(token);
 
-		kill(processID, SIGKILL);
+		kill(processID, SIGINT);
 
 	}
 
@@ -294,8 +294,6 @@ void handle_sigint (int sig) {
 	close(fd_clients_log);
 	
 	//-----------------------------------------------------------------------------------------
-
-	printf("\n\n[LOG] Everything was cleaned, until next time!...\n\n");
 
 	_exit(0);	
 
