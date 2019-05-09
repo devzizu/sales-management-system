@@ -11,6 +11,7 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/wait.h>
 #include <fcntl.h>
 
 #include <stdlib.h>
@@ -21,8 +22,11 @@
 #include <gmodule.h>
 
 #include <time.h>
+#include <math.h>
 
 #include "../GLOBAL_SOURCE/global.h"
+
+#define LINE_VENDAS 53
 
 //-------------------------------------------------------------------------------
 
@@ -33,38 +37,40 @@
  *  @return A lista agregada.
 */
 
-GList* joinList (GList *arg) {
-
+GList* joinList (GList *arg, int flag) 
+{
 	GList *agregada = g_list_alloc();	
 	agregada = NULL;
 
 	//So vou agregar se tiver tamanho maior que 1
-	if (g_list_length(arg) > 1) {
+	//if (g_list_length(arg) > 1) {
 
 		GList *aux = NULL;
 
-		int cod, quant; 
-		int mont;
+		int cod;
+		double quant, mont;
 		
 		char bufferEscrita[MAX_LINE];
 
-		int finalQuant = 0; 
-		int finalMont = 0;
+		double finalQuant = 0; 
+		double finalMont = 0;
 
 		for (aux = arg; aux != NULL; aux = aux -> next) {
 
-			sscanf(aux -> data, "%d %d %d", &cod, &quant, &mont);
+			sscanf(aux -> data, "%d %lf %lf", &cod, &quant, &mont);
 
 			finalQuant += quant;
-		}
+			finalMont += mont;
+		} 
 
-		finalMont = finalQuant * mont; 
+		if(!flag) //20 digitos(forks agreg)
+			sprintf(bufferEscrita, "%010d %020.0lf %020.0lf\n", cod, finalQuant, finalMont);
+		else // ag final
+			sprintf(bufferEscrita, "%d %.0lf %.0lf\n", cod, finalQuant, finalMont);
 
-		sprintf(bufferEscrita, "%d %d %d\n", cod, finalQuant, finalMont);
-	
 		agregada = g_list_prepend(agregada, strdup(bufferEscrita));
 
-	} else agregada = arg;
+	//} else agregada = arg;
 
 
 	return agregada;
@@ -78,7 +84,7 @@ GList* joinList (GList *arg) {
  *  @return A hashtable agregada.
 */
 
-GHashTable* agregarList (GHashTable *vendasTable) {
+GHashTable* agregarList (GHashTable *vendasTable, int flag) {
 
 	//Criar nova hashtable
 	GHashTable* new = g_hash_table_new(g_str_hash, g_str_equal);
@@ -99,7 +105,7 @@ GHashTable* agregarList (GHashTable *vendasTable) {
 
  		GList *nova = NULL;
 
- 		nova = joinList(lVal -> data);
+ 		nova = joinList(lVal -> data, flag);
 
 		g_hash_table_insert(new, 
 					        strdup(lKey -> data), 
@@ -119,8 +125,8 @@ GHashTable* agregarList (GHashTable *vendasTable) {
  *  @return 0 se tudo correr bem.
 */
 
-int hashTable_to_ficheiro (char *path, GHashTable *arg) {
-
+int hashTable_to_ficheiro (char *path, GHashTable *arg) 
+{
 	//Sucesso
 	int r = 0;
 
@@ -133,15 +139,14 @@ int hashTable_to_ficheiro (char *path, GHashTable *arg) {
 	GList *lVal = NULL, *l = NULL;
 
 	//Abrir o ficheiro path para escrita
-	int fd_vendas = open(path, O_CREAT|O_TRUNC|O_WRONLY, 0666);
+	int fd_vendas = open(path, O_CREAT | O_TRUNC | O_WRONLY, 0666);
 
-	for (lVal = vals; lVal != NULL; lVal = lVal -> next) {
-		
-		for (l = lVal -> data; l != NULL; l = l -> next) {
-
+	for (lVal = vals; lVal != NULL; lVal = lVal -> next) 
+	{	
+		for (l = lVal -> data; l != NULL; l = l -> next) 
+		{
 			if (write(fd_vendas, l -> data, strlen(l -> data)) == -1) 
 				r = 1;
-
 		}
 	}
 
@@ -150,15 +155,11 @@ int hashTable_to_ficheiro (char *path, GHashTable *arg) {
 	return r;
 }
 
-//*************************************************************************************
+// ------------------------------------------------------
 
-/** @brief Main: Utiliza hashtables e listas para gerar o ficheiro de vendas agregado.
- *
- *  @return 0 se tudo correr bem.
-*/
 
-int main () {
-
+int agrForks(int linhaInicio, int linhaMaxima, int nFork, char* file, int flag)
+{
 	//Criar a arvore de vendasTable
 	GHashTable *vendasTable = NULL;
 
@@ -167,34 +168,13 @@ int main () {
 
 	//--------------------------------------------------------------
 
-	int fd_agregador_log = open("../PipeVendas/registos_agregador.log", O_RDONLY, 0666);
-
-	off_t place_to_seek;
-
-	char seek[MAX_LINE];
-
-	if (fd_agregador_log == -1) 
-		place_to_seek = 0;
-	else {
-
-		if (read(fd_agregador_log, seek, MAX_LINE) > 0) {
-			
-			place_to_seek = atoi(seek);
-		
-		} else place_to_seek = 0;
-
-	}
-
-	close(fd_agregador_log);
-
-	//--------------------------------------------------------------
 
 	//Abrir o ficheiro de vendasTable para leitura
  	int fd_vendasTable = open(PATH_VENDAS, O_RDWR, 0666);
 
- 	lseek(fd_vendasTable, place_to_seek, SEEK_SET);
+ 	lseek(fd_vendasTable, (linhaInicio*LINE_VENDAS) - LINE_VENDAS, SEEK_SET);
 
- 	//Valor lido pelo readln
+ 	//Valor lido pelo read
  	int n;
 
  	//Buffers para guardar os elementos lidos do ficheiro
@@ -202,14 +182,14 @@ int main () {
  	char val[MAX_LINE];
  	char buffer[MAX_LINE];
  
- 	dup2(fd_vendasTable, 0);
-
   	//Ler a primeira linha
-	n = read(0, buffer, 53);
+	n = read(fd_vendasTable, buffer, LINE_VENDAS);
  	
- 	//Ler o resto das linhas
- 	do {
+ 	int contador = 0;
 
+ 	//Ler o resto das linhas
+ 	while(contador <= (linhaMaxima - linhaInicio) && n > 0)
+ 	{
  		sscanf(buffer, "%s %s", key, val);
 
 		//Inicializar a lista a NULL
@@ -217,8 +197,8 @@ int main () {
 		listaNova = NULL;
 
 		//Caso a key já exista
-		if (g_hash_table_contains(vendasTable, key) == TRUE) {
-
+		if (g_hash_table_contains(vendasTable, key) == TRUE) 
+		{
 			listaNova = g_hash_table_lookup(vendasTable, key);
 		}
 
@@ -227,57 +207,171 @@ int main () {
 		//Inserir o elemento na hashtable
 		g_hash_table_insert(vendasTable, strdup(key), listaNova);
 
-		n = read(0, buffer, 53);
- 	
-	} while (n > 0);
-
-	int ultimaAgreg;
-
-	ultimaAgreg = lseek(fd_vendasTable, 0, SEEK_END);
-
-	close(fd_vendasTable);
-
-	//--------------------------------------------------------------
-
-	fd_agregador_log = open("../PipeVendas/registos_agregador.log", O_CREAT|O_WRONLY|O_TRUNC, 0666);
-
-	char buffer_ult_agreg[MAX_LINE];
-	sprintf(buffer_ult_agreg, "%d\n", ultimaAgreg);
-
-	if (write(fd_agregador_log, buffer_ult_agreg, strlen(buffer_ult_agreg)) != -1);
-
-	close(fd_agregador_log);
+ 		n = read(fd_vendasTable, buffer, LINE_VENDAS);
+ 		
+ 		contador++;
+	}
 
 	//--------------------------------------------------------------
 
 	//Agregar a hashtable
 	GHashTable *agregada = NULL;
-	agregada = agregarList(vendasTable);
+	agregada = agregarList(vendasTable, flag);
+
+	//--------------------------------------------------------------
+	char Path[MAX_LINE];
+
+	time_t t;
+	struct tm tm;   
+
+	switch(flag)
+	{
+		case 0: //Nome do ficheiro consoante o processo recebido
+			sprintf(Path, "../FILES/fork%d", nFork);
+
+			printf("path = %s\n", Path);
+
+			hashTable_to_ficheiro(Path, agregada);
+
+			break;
+	
+		case 1: //Nome do ficheiro é a data e hora atual, vou buscar ao sistema
+			t=  time(NULL);
+			tm = *localtime(&t);
+
+			sprintf(Path, "../FILES/%d-%d-%dT%d:%d:%d", tm.tm_year + 1900, 
+												   tm.tm_mon + 1, 
+												   tm.tm_mday, 
+												   tm.tm_hour, 
+												   tm.tm_min, 
+												   tm.tm_sec);
+
+			printf("path depois de fork = %s\n", Path);
+
+			hashTable_to_ficheiro(Path, agregada);
+
+			cat_file(Path);
+
+			break;
+
+			default: break;
+	}
+
+	return 0;
+}
+
+// -------------------------------------------------------------------------
+
+void mergeFiles(int fd_fork, int nFork)
+{
+	int n = 1;
+	char buffer[MAX_LINE];
+
+	char forkPath[MAX_LINE];
+
+	sprintf(forkPath, "../FILES/fork%d", nFork);
+
+	int file_fork = open(forkPath, O_RDONLY, 0666);
+
+	while(n > 0)
+	{
+		n = read(file_fork, buffer, LINE_VENDAS); 
+
+		if(n <= 0)
+			break;
+
+		if(write(fd_fork, buffer, n) != -1);
+	}
+
+	close(file_fork);
+}
+
+
+//*************************************************************************************
+
+/** @brief Main: Utiliza hashtables e listas para gerar o ficheiro de vendas agregado.
+ *
+ *  @return 0 se tudo correr bem.
+*/
+
+int main() 
+{
+	int fd_agregador_log = open("../PipeVendas/registos_agregador.log", O_RDONLY, 0666);
+
+	off_t place_to_seek;
+
+	char seek[MAX_LINE];
+
+	if (fd_agregador_log == -1) place_to_seek = 0;
+ 	else {
+	
+		readln(fd_agregador_log, seek, MAX_LINE); 	
+
+		place_to_seek = atoi(seek);
+
+ 	}
+
+	int fd_vendasTable = open(PATH_VENDAS, O_RDONLY, 0666);
+
+	int ultimaAgreg = lseek(fd_vendasTable, 0, SEEK_END);
+
+	close(fd_vendasTable);
+
+	close(fd_agregador_log);
 
 	//--------------------------------------------------------------
 
-	//Mandar para o ficheiro e stdout
-	//hashTable_to_stdout(agregada);
+	fd_agregador_log = open("../PipeVendas/registos_agregador.log", O_CREAT|O_WRONLY | O_TRUNC, 0666);
 
-	//Nome do ficheiro é a data e hora atual, vou buscar ao sistema
+	char buffer_ult_agreg[MAX_LINE];
+	sprintf(buffer_ult_agreg, "%d\n", ultimaAgreg);
 
-	char datePath[MAX_LINE];
+	if(write(fd_agregador_log, buffer_ult_agreg, strlen(buffer_ult_agreg)) != -1);
 
-	time_t t = time(NULL);
-	struct tm tm = *localtime(&t);
+	close(fd_agregador_log);
 
-	sprintf(datePath, "../FILES/%d-%d-%dT%d:%d:%d", tm.tm_year + 1900, 
-										   tm.tm_mon + 1, 
-										   tm.tm_mday, 
-										   tm.tm_hour, 
-										   tm.tm_min, 
-										   tm.tm_sec);
+	int nbytesAg = ultimaAgreg - place_to_seek;
 
-	printf("path=%s\n", datePath);
+	int nlinhas = nbytesAg/LINE_VENDAS;
 
-	hashTable_to_ficheiro(datePath, agregada);
+	if(!nlinhas)
+		return 0;  // NÃO É CRIADO DATEPATH QUANDO NÃO HÁ NADA PARA AGREGAR
 
-	cat_file(datePath);
+	int i, nforks;
+
+	int file_agr = open("../FILES/file_agr", O_CREAT | O_WRONLY | O_APPEND, 0666);
+
+	for(i = 0, nforks = 1; i < nlinhas; i += 5000, nforks++)
+	{
+		if(fork() == 0)
+		{
+			if(nlinhas >= 5000 + i)
+				agrForks(i + 1, i + 5000, nforks, "", 0);
+			else
+				agrForks(i + 1, nlinhas, nforks, "", 0);
+
+			mergeFiles(file_agr, nforks);
+			
+			_exit(0);
+		}
+	}
+
+	for(i = 0; i < nforks; i++)
+		wait(NULL);
+
+	close(file_agr);
+
+	agrForks(1, nlinhas, 0, "../FILES/file_agr", 1);
+
+	char forkPath[MAX_LINE];
+
+	for(i = 0; i < nforks; i++)
+	{
+		sprintf(forkPath, "../FILES/fork%d", i);
+		if(remove(forkPath) != -1);		
+	}	
+
+	if(remove("../FILES/file_agr") != -1);
 
 	return 0;
 }
