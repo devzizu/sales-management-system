@@ -31,44 +31,19 @@
 
 double lixo_strings () {
 
-	int max_reference = 0, total_lines = 0;
+	int line_strings = linhasFicheiro(PATH_STRINGS);
 
 	double total_trash = 0.0; //% of trash
 
 	int fd_artigo = open(PATH_ARTIGOS, O_RDONLY, 0666);
 
- 	//Linha lida
-	char buffer[MAX_LINE];
-	//Referencia na linha
-	char *key_ref;
-	//Preco lido
-	char *preco;
-	int ref_atual;
+	int total_bytes = lseek(fd_artigo, 0, SEEK_END);
 
-	//Ler a primeira linha
-	int n = read(fd_artigo, buffer, LINE_ARTIGOS);
- 	
- 	//Ler o resto das linhas
- 	do {
-
- 		//Sacar o preco e referencia (para o ficheiro strings)
- 		key_ref = strdup(strtok(buffer, " "));
- 		preco   = strdup(strtok(NULL  , " "));
-
- 		ref_atual = atoi(key_ref);
-
- 		if (ref_atual > max_reference)
- 			max_reference = ref_atual;
-
-	 	n = read(fd_artigo, buffer, LINE_ARTIGOS);
-		
- 		total_lines++;
-
-	} while (n > 0);
+	int line_artigos = total_bytes / LINE_ARTIGOS;
 
 	close(fd_artigo);
 
-	total_trash = 1.0 - ((double) total_lines / max_reference);
+	total_trash = 1.0 - ((double) line_artigos / line_strings);
 
 	return total_trash;
 }

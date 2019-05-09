@@ -40,10 +40,12 @@ int inserirArtigo (char* nome, int preco, int stock) {
 
 	char buffer[MAX_LINE];
 
+	int linha_onde_inseriu = 1;
+
 	if (fd_artigo != EOF && fd_string != EOF) {
 
 		//Reposicionar o ficheiro de artigos no fim		
-		lseek(fd_artigo, 0, SEEK_END);
+		linha_onde_inseriu = lseek(fd_artigo, 0, SEEK_END);
 
 		//Guardar no buffer o novo artigo e a sua posição
 		//o index representa o offset desde o inicio do ficheiro ate ao inicio da string do produto
@@ -57,6 +59,8 @@ int inserirArtigo (char* nome, int preco, int stock) {
 		if (write(fd_string, nameBuffer, strlen(nameBuffer)) != -1);
 	}
 	
+	printf("Código do artigo: %d \n", 1 + (linha_onde_inseriu / LINE_ARTIGOS));
+
 	//Fechar os fd's dos artigos
 	close(fd_artigo);
 	close(fd_string);

@@ -202,8 +202,10 @@ int main () {
  	char val[MAX_LINE];
  	char buffer[MAX_LINE];
  
+ 	dup2(fd_vendasTable, 0);
+
   	//Ler a primeira linha
-	n = readln(fd_vendasTable, buffer, MAX_LINE);
+	n = read(0, buffer, 53);
  	
  	//Ler o resto das linhas
  	do {
@@ -225,7 +227,7 @@ int main () {
 		//Inserir o elemento na hashtable
 		g_hash_table_insert(vendasTable, strdup(key), listaNova);
 
- 		n = readln(fd_vendasTable, buffer, MAX_LINE);
+		n = read(0, buffer, 53);
  	
 	} while (n > 0);
 

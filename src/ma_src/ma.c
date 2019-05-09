@@ -162,20 +162,26 @@ int main () {
 
 		if (!strcmp(buffer, AGREGADOR)) {
 
-			pid = fork();
+			int pipeEnvioServer = open("../PipeVendas/pipeClienteVendas", O_WRONLY, 0666);
 
-			if (pid == 0) {
+			if (pipeEnvioServer == -1) {
 
-				execl(AGR_EXEC_PATH, "./ag", NULL);
+				if(write(2, "Agregador temporariamente indisponivel [SERVER_SHUTDOWN]\n", 58)!=-1);
 
-				_exit(0);
-
-			} else if (pid > 0) {
-
-				wait(NULL);
-
+				continue;
 			}
-			
+
+			char pedidoBuffer[MAX_LINE];
+			int id_ag = 22222;
+
+			sprintf(pedidoBuffer, "%07d %010d %010d", id_ag, 
+			                             	 	      0,
+			                            		      0);
+
+			if(write(pipeEnvioServer, pedidoBuffer, TAM_PEDIDO) != -1);
+
+			close(pipeEnvioServer);
+
 		} else {
 
 			if (nr_spaces_in_string(buffer) == 2) {

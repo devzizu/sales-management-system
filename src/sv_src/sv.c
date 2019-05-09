@@ -10,6 +10,7 @@
 
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/wait.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <signal.h>
@@ -20,6 +21,9 @@
 
 #include "../GLOBAL_SOURCE/global.h"
 #include "../GLOBAL_SOURCE/cache.h"
+
+/**MACRO path para o executavel do agregador*/
+#define AGR_EXEC_PATH "../ag_src/ag"
 
 //-------------------------------------------------------------------------------
 
@@ -247,7 +251,7 @@ void updateVenda (int codigo, int quantidade, CACHE cache) {
 	//Juntar a venda toda num buffer
 
 	char bufferEscrita[MAX_LINE];
-	sprintf(bufferEscrita, "%d %d %d\n", codigo, quantidade, quantidade*precoLido);	
+	sprintf(bufferEscrita, "%010d %020d %020d\n", codigo, quantidade, quantidade*precoLido);	
 
 	if(write(fd_vendas, bufferEscrita, strlen(bufferEscrita)) != -1);
 
@@ -294,6 +298,8 @@ void handle_sigint (int sig) {
 	close(fd_clients_log);
 	
 	//-----------------------------------------------------------------------------------------
+
+	if (remove("../PipeVendas/registos_agregador.log") != -1);
 
 	_exit(0);	
 
@@ -343,7 +349,23 @@ int main() {
 
 		campos = tokenizePedidodServidor(buffer);
 
-		if (atoi(campos[0]) == 11111) {
+		if (atoi(campos[0]) == 22222) {
+
+			pid_t pid = fork();
+
+			if (pid == 0) {
+
+				execl(AGR_EXEC_PATH, "./ag", NULL);
+
+				_exit(0);
+
+			} else if (pid > 0) {
+
+				wait(NULL);
+
+			}
+
+		} else if (atoi(campos[0]) == 11111) {
 
 			pos = lookup_code_cache(cache_server, atoi(campos[1]));
 
