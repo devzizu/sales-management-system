@@ -13,17 +13,12 @@ OBJ = GLOBAL_SOURCE/obj
 
 all: source ma sv ag comp cv
 
-source: global artigo
+source: global cache
 
 global: GLOBAL_SOURCE/global.c GLOBAL_SOURCE/global.h
 	$(CC) $(CFLAGS) -c GLOBAL_SOURCE/global.c
 	mkdir -p $(OBJ)
 	mv global.o $(OBJ)
-
-artigo: GLOBAL_SOURCE/artigos.c GLOBAL_SOURCE/artigos.h
-	$(CC) $(CFLAGS) `pkg-config --cflags libxml-2.0` `pkg-config --cflags glib-2.0` -c GLOBAL_SOURCE/artigos.c
-	mkdir -p $(OBJ)
-	mv artigos.o $(OBJ)
 
 cache: GLOBAL_SOURCE/cache.c GLOBAL_SOURCE/cache.h
 	$(CC) $(CFLAGS) -c GLOBAL_SOURCE/cache.c

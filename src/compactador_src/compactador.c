@@ -17,10 +17,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <glib.h>
-
 #include "../GLOBAL_SOURCE/global.h"
-#include "../GLOBAL_SOURCE/artigos.h"
 
 //-------------------------------------------------------------------------------
 
@@ -80,6 +77,8 @@ char* get_line_from_file (char *path, int line_to_search) {
 
 	} while (n > 0); 	
 
+	buffer[strlen(buffer) - 1] = '\0';
+
 	char *res;
 
 	if (!r) 
@@ -100,12 +99,12 @@ char* get_line_from_file (char *path, int line_to_search) {
  *  @return pointer para o buffer da linha.
 */
 
-int get_stock_from_file (int referencia) {
+int get_stock_from_file (char *path_stock, int referencia) {
 
 	int fd_stock, pos_leitura, n;
 	off_t offset;
 	
-	fd_stock = open(PATH_STOCK, O_RDONLY, 0666);
+	fd_stock = open(path_stock, O_RDONLY, 0666);
 	pos_leitura = (referencia-1) * LINE_STOCK;
 	offset = lseek(fd_stock, pos_leitura, SEEK_SET);
 
@@ -118,6 +117,62 @@ int get_stock_from_file (int referencia) {
 	return atoi(oldStock);
 }
 
+int compactarStrings () {
+
+	//-------------------------------------------------------------------
+
+	int n = 0;
+ 	
+	char buffer[MAX_LINE];
+
+	int codigo_atual = 0, preco_atual, referencia_ant;
+
+	//-------------------------------------------------------------------
+
+	//Renomear os ficheiros para nomes temporários
+	if (rename(PATH_ARTIGOS, PATH_TMP_ARTIGOS) != -1);
+	if (rename(PATH_STOCK, PATH_TMP_STOCK) != -1);
+	if (rename(PATH_STRINGS, PATH_TMP_STRINGS) != -1);
+
+	int fd_novo_art = open(PATH_ARTIGOS, O_CREAT, 0666);
+	int fd_novo_stk = open(PATH_STOCK, O_CREAT, 0666);
+	int fd_novo_str = open(PATH_STRINGS, O_CREAT, 0666);
+
+	close(fd_novo_art);
+	close(fd_novo_str);
+	close(fd_novo_stk);
+
+	//-------------------------------------------------------------------
+
+	int fd_artigos = open(PATH_TMP_ARTIGOS, O_RDONLY, 0666);
+
+ 	//Ler a primeira linha
+	n = read(fd_artigos, buffer, LINE_ARTIGOS);
+
+	codigo_atual++;
+
+ 	//Ler o resto das linhas
+ 	do {
+
+ 		sscanf(buffer, "%d %d", &referencia_ant, &preco_atual);
+
+ 		inserirArtigo(get_line_from_file(PATH_TMP_STRINGS, referencia_ant),
+ 					  preco_atual,
+ 					  get_stock_from_file(PATH_TMP_STOCK, codigo_atual));
+
+ 		n = read(fd_artigos, buffer, LINE_ARTIGOS);
+ 	
+ 		codigo_atual++;
+
+	} while (n > 0);
+
+	close(fd_artigos);
+
+	//-------------------------------------------------------------------
+
+	return 0;
+}
+
 //*************************************************************************************
 
 /** @brief Main: efetua a compactação do ficheiro trazendo para a memória as partes essencias do ficheiro (não obsuletas).
@@ -128,9 +183,12 @@ int get_stock_from_file (int referencia) {
 
 int main(int argc, char const *argv[]) {
 	
+	//-------------------------------------------------------------
+	//Verificar se é necessário compactar
+
 	printf("\n=> A correr o compactador...\n");
 
-	double trash = lixo_strings();
+	double trash = 100 * lixo_strings();
 
 	//Só executa o agregador se o ficheiro tiver mais de 20% de lixo
 
@@ -143,83 +201,12 @@ int main(int argc, char const *argv[]) {
 		return 0;
 	}
 
-	int fd_artigos = open(PATH_ARTIGOS, O_RDONLY, 0666);
+	//-------------------------------------------------------------
 
-	GList *stringsCompact = NULL;
+	if (compactarStrings() == 0)
+		printf("\nCompactação feita...\n");
 
-	int n = 0;
- 	
- 	//Linha lida
-	char buffer[MAX_LINE];
-	//Referencia na linha
-	char *key_ref;
-	//Preco lido
-	char *preco;
-
-	int key_int;
-
-	key_int = 0;
-
- 	//Ler a primeira linha
-	n = read(fd_artigos, buffer, LINE_ARTIGOS);
- 	
-	key_int++;
-
- 	//Ler o resto das linhas
- 	do {
-
- 		ARTIGO novo = initArtigo(novo);
-
- 		//Sacar o preco e referencia (para o ficheiro strings)
- 		key_ref = strdup(strtok(buffer, " "));
- 		preco   = strdup(strtok(NULL  , " "));
-
- 		novo = insertArtigo(novo, key_ref, 
- 								  get_line_from_file(PATH_STRINGS, atoi(key_ref)),
- 								  atof(preco),
- 								  key_int,
- 								  get_stock_from_file(key_int));
-
- 		//write_artigo_to_stdout(novo);
- 		
- 		//Inserir o artigo na hashtable
- 		stringsCompact = g_list_prepend(stringsCompact, novo);
-
- 		key_int++;
-
- 		n = read(fd_artigos, buffer, LINE_ARTIGOS);
- 	
-	} while (n > 0);
-
-	close(fd_artigos);
-
-	//-------------------------------------------------------------------
-
-	//Limpar o ficheiro de artigos
-	fd_artigos = open(PATH_ARTIGOS, O_CREAT|O_TRUNC|O_WRONLY, 0666);
-	close(fd_artigos);
-
-	//Limpar o ficheiro de strings
-	int fd_strings = open(PATH_STRINGS, O_CREAT|O_TRUNC|O_WRONLY, 0666);
-	close(fd_strings);
-
-	//Limpar o ficheiro de stocks
-	int fd_stock = open(PATH_STOCK, O_CREAT|O_TRUNC|O_WRONLY, 0666);
-	close(fd_stock);
-
-	GList *values = NULL, *auxValues = NULL;
-
-	stringsCompact = g_list_sort(stringsCompact, artigo_compare);
-
-	for (auxValues = stringsCompact; auxValues != NULL; auxValues = auxValues -> next) {
-
-		char *nome_art = strdup(getNome(auxValues -> data));
-		nome_art[strlen(nome_art)-1]='\0';
-
-		inserirArtigo(nome_art, getPreco(auxValues -> data), getStock(auxValues -> data));
-	}
-
-	printf("\nCompactação feita...\n");
+	//-------------------------------------------------------------
 
 	return 0;
 }

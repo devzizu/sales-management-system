@@ -23,8 +23,9 @@
 /*Ficheiro onde sao encaminhados os erros de execução dos programas*/
 #define PATH_ERRORLOG "../FILES/ERRORLOG.log"
 
-#define PATH_TMP_ARTIGOS "FILES/tmpArtigos.txt"
-#define PATH_TMP_STOCK "FILES/tmpStock.txt"
+#define PATH_TMP_ARTIGOS "../FILES/tmpArtigos.txt"
+#define PATH_TMP_STOCK "../FILES/tmpStock.txt"
+#define PATH_TMP_STRINGS "../FILES/tmpStrings.txt"
 
 //-------------------------------------------------------------------------------
 
