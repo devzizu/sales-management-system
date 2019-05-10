@@ -170,6 +170,10 @@ int compactarStrings () {
 
 	//-------------------------------------------------------------------
 
+	if (remove(PATH_TMP_ARTIGOS) != -1);
+	if (remove(PATH_TMP_STOCK) != -1);
+	if (remove(PATH_TMP_STRINGS) != -1);
+
 	return 0;
 }
 
