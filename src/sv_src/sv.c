@@ -23,7 +23,7 @@
 #include "../GLOBAL_SOURCE/cache.h"
 
 /**MACRO path para o executavel do agregador*/
-#define AGR_EXEC_PATH "ag"
+#define AGR_EXEC_PATH "../ag_src/ag"
 
 //-------------------------------------------------------------------------------
 
@@ -240,7 +240,7 @@ void updateVenda (int codigo, int quantidade, CACHE cache) {
 	
 	} else {
 		
-		printf("Elemento já se encontra na cache...\n");
+		printf("ta na cache\n");
 		
 		precoLido = getPreco(cache, pos);
 	}
@@ -264,7 +264,7 @@ void handle_sigint (int sig) {
 
 	printf("\n[LOG] Server shutting down...\n");
 
-	if (remove("PipeVendas/pipeClienteVendas") != -1);
+	if (remove("../PipeVendas/pipeClienteVendas") != -1);
 
 	//-----------------------------------------------------------------------------------------
 
@@ -272,7 +272,7 @@ void handle_sigint (int sig) {
 
 	//-----------------------------------------------------------------------------------------
 
-	int fd_clients_log = open ("PipeVendas/clientes.log", O_RDONLY, 0666);
+	int fd_clients_log = open ("../PipeVendas/clientes.log", O_RDONLY, 0666);
 
 	int bytes_linha = 44; //com \n
 
@@ -292,19 +292,18 @@ void handle_sigint (int sig) {
 		kill(processID, SIGINT);
 
 		sprintf(pathCliente, "%s%d", BASE_PATH, processID);
-
 		if (remove(pathCliente)!=-1);
 	}
 
 	close(fd_clients_log);
 
-	fd_clients_log = open ("PipeVendas/clientes.log", O_TRUNC, 0666);
+	fd_clients_log = open ("../PipeVendas/clientes.log", O_TRUNC, 0666);
 
 	close(fd_clients_log);
 	
 	//-----------------------------------------------------------------------------------------
 
-	if (remove("PipeVendas/registos_agregador.log") != -1);
+	if (remove("../PipeVendas/registos_agregador.log") != -1);
 
 	_exit(0);	
 
@@ -327,7 +326,7 @@ int main() {
 	int fd_stock = open(PATH_STOCK, O_RDWR, 0666);
 
 	//FIFO de envio dos pedidos do cliente ao servidor
-	mkfifo("PipeVendas/pipeClienteVendas", 0600);	
+	mkfifo("../PipeVendas/pipeClienteVendas", 0600);	
 
 	signal(SIGINT, handle_sigint);
 
@@ -340,7 +339,7 @@ int main() {
 	//Para guardar o comando lido
 	char buffer[MAX_LINE];
 	
-	int fd_pedidos = open("PipeVendas/pipeClienteVendas", O_RDONLY, 0666);
+	int fd_pedidos = open("../PipeVendas/pipeClienteVendas", O_RDONLY, 0666);
 	
 	int pos;
 
@@ -376,7 +375,7 @@ int main() {
 
 			if (pos != -1) {
 
-				printf("ja encontrei na cache, updating preco\n");
+				printf("ja encontrei na cache, updating\n");
 
 				setPreco(cache_server, pos, atoi(campos[2]));
 

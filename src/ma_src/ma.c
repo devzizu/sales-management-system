@@ -12,6 +12,10 @@
 #include "../GLOBAL_SOURCE/global.h"
 #include "../GLOBAL_SOURCE/cache.h"
 
+/**MACRO path base do pipe servidor >> cliente*/
+#define BASE_PATH "../PipeVendas/pipePrintCliente"
+/**MACRO path para o executavel do agregador*/
+#define AGR_EXEC_PATH "../ag_src/ag"
 /**MACRO nome do comando do agregador*/
 #define AGREGADOR "a"
 
@@ -106,7 +110,7 @@ void atualizaPreco (int referencia, int novoPreco) {
 
 	printf("updating preco\n");
 
-	int pipeEnvioServer = open("PipeVendas/pipeClienteVendas", O_WRONLY, 0666);
+	int pipeEnvioServer = open("../PipeVendas/pipeClienteVendas", O_WRONLY, 0666);
 
 	if (pipeEnvioServer == -1) 
 		return;
@@ -158,7 +162,7 @@ int main () {
 
 		if (!strcmp(buffer, AGREGADOR)) {
 
-			int pipeEnvioServer = open("PipeVendas/pipeClienteVendas", O_WRONLY, 0666);
+			int pipeEnvioServer = open("../PipeVendas/pipeClienteVendas", O_WRONLY, 0666);
 
 			if (pipeEnvioServer == -1) {
 

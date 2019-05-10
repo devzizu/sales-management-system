@@ -19,7 +19,7 @@ $(ODIR)/%o :
 	$(CC) $(CFLAGS) -c -o $@ $(patsubst %.o, %.c, $(patsubst $(ODIR)/%, %, $@))
 
 ag: clean $(OBJECTS)
-	$(CC) $(CFLAGS) $(OBJECTS) $(GLOBAL) -o ../ag $(LIBS)
+	$(CC) $(CFLAGS) $(OBJECTS) $(GLOBAL) -o ag $(LIBS)
 
 clean:
 	rm -f $(ODIR)/*.o

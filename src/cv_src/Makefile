@@ -18,7 +18,7 @@ $(ODIR)/%o :
 	$(CC) $(CFLAGS) -c -o $@ $(patsubst %.o, %.c, $(patsubst $(ODIR)/%, %, $@))
 
 cv: clean $(OBJECTS)
-	$(CC) $(CFLAGS) $(OBJECTS) $(GLOBAL) -o ../cv
+	$(CC) $(CFLAGS) $(OBJECTS) $(GLOBAL) -o cv
 
 clean:
 	rm -f $(ODIR)/*.o

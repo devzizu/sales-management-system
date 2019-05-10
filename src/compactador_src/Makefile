@@ -18,7 +18,7 @@ $(ODIR)/%o :
 	$(CC) $(CFLAGS) -c -o $@ $(patsubst %.o, %.c, $(patsubst $(ODIR)/%, %, $@))
 
 compactador: clean $(OBJECTS)
-	$(CC) $(CFLAGS) $(OBJECTS) $(GLOBAL) -o ../compactador $(LIBS)
+	$(CC) $(CFLAGS) $(OBJECTS) $(GLOBAL) -o compactador $(LIBS)
 
 clean:
 	rm -f $(ODIR)/*.o

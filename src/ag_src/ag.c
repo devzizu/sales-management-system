@@ -227,7 +227,7 @@ int agrForks(int linhaInicio, int linhaMaxima, int nFork, char* file, int flag)
 	switch(flag)
 	{
 		case 0: //Nome do ficheiro consoante o processo recebido
-			sprintf(Path, "FILES/fork%d", nFork);
+			sprintf(Path, "../FILES/fork%d", nFork);
 
 			printf("path = %s\n", Path);
 
@@ -239,7 +239,7 @@ int agrForks(int linhaInicio, int linhaMaxima, int nFork, char* file, int flag)
 			t=  time(NULL);
 			tm = *localtime(&t);
 
-			sprintf(Path, "FILES/%d-%d-%dT%d:%d:%d", tm.tm_year + 1900, 
+			sprintf(Path, "../FILES/%d-%d-%dT%d:%d:%d", tm.tm_year + 1900, 
 												   tm.tm_mon + 1, 
 												   tm.tm_mday, 
 												   tm.tm_hour, 
@@ -269,7 +269,7 @@ void mergeFiles(int fd_fork, int nFork)
 
 	char forkPath[MAX_LINE];
 
-	sprintf(forkPath, "FILES/fork%d", nFork);
+	sprintf(forkPath, "../FILES/fork%d", nFork);
 
 	int file_fork = open(forkPath, O_RDONLY, 0666);
 
@@ -296,7 +296,7 @@ void mergeFiles(int fd_fork, int nFork)
 
 int main() 
 {
-	int fd_agregador_log = open("PipeVendas/registos_agregador.log", O_RDONLY, 0666);
+	int fd_agregador_log = open("../PipeVendas/registos_agregador.log", O_RDONLY, 0666);
 
 	off_t place_to_seek;
 
@@ -321,7 +321,7 @@ int main()
 
 	//--------------------------------------------------------------
 
-	fd_agregador_log = open("PipeVendas/registos_agregador.log", O_CREAT|O_WRONLY | O_TRUNC, 0666);
+	fd_agregador_log = open("../PipeVendas/registos_agregador.log", O_CREAT|O_WRONLY | O_TRUNC, 0666);
 
 	char buffer_ult_agreg[MAX_LINE];
 	sprintf(buffer_ult_agreg, "%d\n", ultimaAgreg);
@@ -339,7 +339,7 @@ int main()
 
 	int i, nforks;
 
-	int file_agr = open("FILES/file_agr", O_CREAT | O_WRONLY | O_APPEND, 0666);
+	int file_agr = open("../FILES/file_agr", O_CREAT | O_WRONLY | O_APPEND, 0666);
 
 	for(i = 0, nforks = 1; i < nlinhas; i += 5000, nforks++)
 	{
@@ -361,17 +361,17 @@ int main()
 
 	close(file_agr);
 
-	agrForks(1, nlinhas, 0, "FILES/file_agr", 1);
+	agrForks(1, nlinhas, 0, "../FILES/file_agr", 1);
 
 	char forkPath[MAX_LINE];
 
 	for(i = 0; i < nforks; i++)
 	{
-		sprintf(forkPath, "FILES/fork%d", i);
+		sprintf(forkPath, "../FILES/fork%d", i);
 		if(remove(forkPath) != -1);		
 	}	
 
-	if(remove("FILES/file_agr") != -1);
+	if(remove("../FILES/file_agr") != -1);
 
 	return 0;
 }
