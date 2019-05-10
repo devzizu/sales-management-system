@@ -11,7 +11,7 @@ COMP = compactador_src/
 
 OBJ = GLOBAL_SOURCE/obj
 
-all: source ma sv ag comp cv
+all: clean source ma sv ag comp cv
 
 source: global cache
 
@@ -53,3 +53,4 @@ cv:
 clean:
 	rm -rf FILES/2019*
 	rm -rf PipeVendas/pipePrint*
+	rm ag compactador sv cv ma

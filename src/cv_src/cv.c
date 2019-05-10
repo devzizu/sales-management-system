@@ -25,15 +25,6 @@
 
 //-------------------------------------------------------------------------------
 
-/**MACRO path base do pipe servidor >> cliente*/
-#define BASE_PATH "../PipeVendas/pipePrintCliente"
-/**MACRO path para o executavel do agregador*/
-#define AGR_EXEC_PATH "../ag_src/ag"
-/**MACRO nome do comando do agregador*/
-#define AGREGADOR "ag"
-
-//-------------------------------------------------------------------------------
-
 /** Variaveis globais a este programa, erros retornados pelo servidor e reportados no terminal dos clientes */
 
 /*Erro comando invalido*/
@@ -73,7 +64,7 @@ int main(int argc, char* argv[]) {
 	//Identificador do cliente no servidor de vendas
 	pid_t clientAnswerID;
 
-	int fd_clients_log = open ("../PipeVendas/clientes.log", O_CREAT|O_WRONLY|O_APPEND, 0666);
+	int fd_clients_log = open ("PipeVendas/clientes.log", O_CREAT|O_WRONLY|O_APPEND, 0666);
 
 	char clienteID[MAX_LINE];
 
@@ -102,10 +93,10 @@ int main(int argc, char* argv[]) {
 	char serverAnswer[MAX_LINE];
 	char resposta[MAX_LINE];
 
-	int pipeEnvioServer = open("../PipeVendas/pipeClienteVendas", O_WRONLY);
+	int pipeEnvioServer = open("PipeVendas/pipeClienteVendas", O_WRONLY);
 
 	//Ficheiro que contém os comandos a serem lidos
-	int pedidosClientes = open("../PipeVendas/VendasRepository.txt", O_RDONLY, 0666);
+	int pedidosClientes = open("PipeVendas/VendasRepository.txt", O_RDONLY, 0666);
 
 	int errorLog = open(PATH_ERRORLOG, O_WRONLY|O_APPEND, 0666);
 

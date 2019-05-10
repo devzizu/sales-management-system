@@ -15,17 +15,17 @@
 
 /*PATHS para os ficheiros principais do programa*/
 
-#define PATH_ARTIGOS "../FILES/ARTIGOS"
-#define PATH_STRINGS "../FILES/STRINGS"
-#define PATH_STOCK "../FILES/STOCK"
-#define PATH_VENDAS "../FILES/VENDAS"
+#define PATH_ARTIGOS "FILES/ARTIGOS"
+#define PATH_STRINGS "FILES/STRINGS"
+#define PATH_STOCK "FILES/STOCK"
+#define PATH_VENDAS "FILES/VENDAS"
 
 /*Ficheiro onde sao encaminhados os erros de execução dos programas*/
-#define PATH_ERRORLOG "../FILES/ERRORLOG.log"
+#define PATH_ERRORLOG "FILES/ERRORLOG.log"
 
-#define PATH_TMP_ARTIGOS "../FILES/tmpArtigos.txt"
-#define PATH_TMP_STOCK "../FILES/tmpStock.txt"
-#define PATH_TMP_STRINGS "../FILES/tmpStrings.txt"
+#define PATH_TMP_ARTIGOS "FILES/tmpArtigos.txt"
+#define PATH_TMP_STOCK "FILES/tmpStock.txt"
+#define PATH_TMP_STRINGS "FILES/tmpStrings.txt"
 
 //-------------------------------------------------------------------------------
 
@@ -39,7 +39,7 @@
 
 //-------------------------------------------------------------------------------
 
-#define BASE_PATH "../PipeVendas/pipePrintCliente"
+#define BASE_PATH "PipeVendas/pipePrintCliente"
 
 //-------------------------------------------------------------------------------
 
