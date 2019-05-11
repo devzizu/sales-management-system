@@ -240,7 +240,7 @@ void updateVenda (int codigo, int quantidade, CACHE cache) {
 	
 	} else {
 		
-		printf("ta na cache\n");
+		printf("[Cache] Elemento já se encontra na cache\n");
 		
 		precoLido = getPreco(cache, pos);
 	}
@@ -355,6 +355,8 @@ int main() {
 
 		if (atoi(campos[0]) == 22222) {
 
+			printf("[ma -> sv] a executar agregador...\n");
+
 			pid_t pid = fork();
 
 			if (pid == 0) {
@@ -375,7 +377,7 @@ int main() {
 
 			if (pos != -1) {
 
-				printf("ja encontrei na cache, updating\n");
+				printf("[ma -> sv] A atualizar preço da cache.\n");
 
 				setPreco(cache_server, pos, atoi(campos[2]));
 
