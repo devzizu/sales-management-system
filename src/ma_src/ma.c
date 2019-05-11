@@ -21,16 +21,56 @@
 
 static char err_reading_num[24] = "[./ma] invalid number.\n";
 static char err_reading_cmd[25] = "[./ma] invalid command.\n";
+static char err_reading_code[29] = "[./ma] code does not exist.\n";
 
 //-----------------------------------------------------------------
 
 void atualizaNome (int ref_antiga, char *novoNome) {
 
+	int fd_artigo = open(PATH_ARTIGOS, O_RDWR, 0666);
+
+	lseek(fd_artigo, 0, SEEK_SET);
+
+	int pos_escrita = (ref_antiga-1) * LINE_ARTIGOS;
+	
+	off_t offset = lseek(fd_artigo, pos_escrita, SEEK_SET);
+
+	char buffer[MAX_LINE];
+	int n;
+	n = read(fd_artigo, buffer, LINE_ARTIGOS);
+
+	if (n==0) {
+
+		int errorsLog = open (PATH_ERRORLOG, O_WRONLY|O_APPEND, 0666);
+		if (write(errorsLog, err_reading_code, strlen(err_reading_code)) != -1);
+		close(errorsLog);
+
+		return;
+	}
+
 	//-----------------------------------------------------------
 	// Adicionar ao fim do ficheiro Strings o novo Nome
 
 	//Novo offset do nome do produto alterado no ficheiro strings
-	int newIndex = linhasFicheiro(PATH_STRINGS);
+	//int newIndex = linhasFicheiro(PATH_STRINGS);
+
+	int fd_reg_str = open("../FILES/STR_REG", O_RDWR, 0666);
+
+	char reg_str[MAX_LINE];
+	readln(fd_reg_str, reg_str, MAX_LINE);
+
+	//Posicao onde vai ser inserido no ficheiro de strings
+	int newIndex = 1 + atoi(reg_str);//linhasFicheiro(PATH_STRINGS);
+
+	sprintf(reg_str, "%d\n", newIndex);
+
+	lseek(fd_reg_str, 0, SEEK_SET);
+
+	if (write(fd_reg_str, reg_str, strlen(reg_str)));
+
+	close(fd_reg_str);
+
+	//-----------------------------------------------------------
 
 	int fd_string = open(PATH_STRINGS, O_APPEND|O_WRONLY, 0666);
 
@@ -44,18 +84,6 @@ void atualizaNome (int ref_antiga, char *novoNome) {
 	close(fd_string);
 
 	//-----------------------------------------------------------
-
-	int fd_artigo = open(PATH_ARTIGOS, O_RDWR, 0666);
-
-	lseek(fd_artigo, 0, SEEK_SET);
-
-	int pos_escrita = (ref_antiga-1) * LINE_ARTIGOS;
-	
-	off_t offset = lseek(fd_artigo, pos_escrita, SEEK_SET);
-
-	char buffer[MAX_LINE];
-	int n;
-	n = readln(fd_artigo, buffer, MAX_LINE);
 
 	char precoAntigo[MAX_LINE], tmp[MAX_LINE];
 	sscanf(buffer, "%s %s", tmp, precoAntigo);
@@ -86,6 +114,14 @@ void atualizaPreco (int referencia, int novoPreco) {
 	int n;
 	n = read(fd_artigo, buffer, LINE_ARTIGOS);
 
+	if (n==0) {
+		
+		int errorsLog = open (PATH_ERRORLOG, O_WRONLY|O_APPEND, 0666);
+		if (write(errorsLog, err_reading_code, strlen(err_reading_code)) != -1);
+		close(errorsLog);
+
+		return;
+	}
 	//Sacar o preco que estava na linha que quero alterar
 	//Fazendo sscanf do buffer
 	char precoAntigo[MAX_LINE], tmp[MAX_LINE];

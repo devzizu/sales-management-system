@@ -28,7 +28,15 @@
 
 double lixo_strings () {
 
-	int line_strings = linhasFicheiro(PATH_STRINGS);
+	int fd_reg_str = open("../FILES/STR_REG", O_RDWR, 0666);
+
+	char reg_str[MAX_LINE];
+	readln(fd_reg_str, reg_str, MAX_LINE);
+
+	close(fd_reg_str);
+
+	//Posicao onde vai ser inserido no ficheiro de strings
+	int line_strings = atoi(reg_str);//linhasFicheiro(PATH_STRINGS);
 
 	double total_trash = 0.0; //% of trash
 
@@ -204,6 +212,16 @@ int main(int argc, char const *argv[]) {
 
 		return 0;
 	}
+
+	int fd_reg_str = open("../FILES/STR_REG", O_WRONLY, 0666);
+
+	char reg_str[MAX_LINE];
+	sprintf(reg_str, "%d", 0);
+
+	if (write(fd_reg_str, reg_str, strlen(reg_str)));
+
+	close(fd_reg_str);
+
 
 	//-------------------------------------------------------------
 

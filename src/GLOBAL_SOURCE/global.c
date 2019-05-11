@@ -28,8 +28,21 @@
 //Retorna a ultima linha onde foi inserido
 int inserirArtigo (char* nome, int preco, int stock) {
 
+	int fd_reg_str = open("../FILES/STR_REG", O_RDWR, 0666);
+
+	char reg_str[MAX_LINE];
+	readln(fd_reg_str, reg_str, MAX_LINE);
+
 	//Posicao onde vai ser inserido no ficheiro de strings
-	int index = linhasFicheiro(PATH_STRINGS);
+	int index = 1 + atoi(reg_str);//linhasFicheiro(PATH_STRINGS);
+
+	sprintf(reg_str, "%d\n", index);
+
+	lseek(fd_reg_str, 0, SEEK_SET);
+
+	if (write(fd_reg_str, reg_str, strlen(reg_str)));
+
+	close(fd_reg_str);
 
 	//Abrir ambos os ficheiros
 	//Não é preciso append pois faço lseek
