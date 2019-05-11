@@ -182,6 +182,8 @@ int agrForks(int linhaInicio, int linhaMaxima, int nFork, char* file, int flag)
  	char val[MAX_LINE];
  	char buffer[MAX_LINE];
  
+ 	dup2(fd_vendasTable, 0);
+ 
   	//Ler a primeira linha
 	n = read(fd_vendasTable, buffer, LINE_VENDAS);
  	
