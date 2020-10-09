@@ -3,11 +3,11 @@
 CFLAGS= -O2
 CC=gcc
 
-MA = ma_src/
-SV = sv_src/
-AG = ag_src/
-CV = cv_src/
-COMP = compactador_src/
+MA = ma/
+SV = sv/
+AG = ag/
+CV = cv/
+COMP = compactador/
 
 OBJ = GLOBAL_SOURCE/obj
 
