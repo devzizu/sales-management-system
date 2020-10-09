@@ -5,7 +5,7 @@
 * Manage loads of requests from clients to get/replace/manage data about inventories/stock, sales, ...;
 * Use Unix based system calls in C and understand how it can be usefull and more secure and create pipe related servers using named FIFOs, signals, alarms,...;
 * Manage files using those system calls without having the need to work with big data structures;
-* Understand how memory works and rely in this knowledge to develop the project.
+* Understand how memory works and rely in this knowledge and other operation systems topics to develop the project.
 
 <br>
 
